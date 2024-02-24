@@ -20,10 +20,14 @@ class ApartmentRow extends StatelessWidget {
       title: Row(
         children: [
           Expanded(
-            child: Text(apartment.attendantName),
+            child: Text(
+              apartment.attendantName,
+              style: TextStyle(fontSize: 25),
+            ),
           ),
           Expanded(
-            child: Text('${apartment.yearlyPaymentAmount.toInt()} תשלום שנתי'),
+            child: Text('${apartment.yearlyPaymentAmount.toInt()} תשלום שנתי',
+                style: TextStyle(fontSize: 25)),
           ),
           GestureDetector(
             onTap: () {
@@ -37,7 +41,7 @@ class ApartmentRow extends StatelessWidget {
             child: Row(
               children: [
                 Icon(Icons.attach_money),
-                Text('דווח'),
+                Text('דווח', style: TextStyle(fontSize: 25)),
               ],
             ),
           ),

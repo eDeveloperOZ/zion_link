@@ -1,0 +1,38 @@
+@startuml Models_ERD
+
+title Models ERD
+
+class Building {
+    id: int
+    name: string
+    address: string
+    apartments: Apartment[]
+    expenses: Expense[]
+}
+class Apartment {
+    id: int
+    attendantName: string
+    yearlyPaymentAmount: double
+    payments: Payment[]
+}
+class Expense {
+    id: String
+    title: String
+    amount: double
+    date: DateTime
+    categoryId: String
+    filePath: String?
+}
+class Payment {
+    id: string
+    amount: float
+    date: date
+    paymentMethod: string
+    isConfirmed: boolean
+}
+
+Building->Apartment: "1" contains "many"
+Apartment->Payment: "1" contains "many"
+Building->Expense: "1" contains "many"
+
+@enduml

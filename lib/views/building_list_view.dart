@@ -156,9 +156,9 @@ class _BuildingDetailViewState extends State<BuildingDetailView> {
           ),
           IconButton(icon: Icon(Icons.logout, size: 24), onPressed: () {}),
           DeleteBuildingDialog(
-            buildingName: _building.name,
+            buildingID: _building.id,
             onBuildingDeleted: () async {
-              await _buildingService.deleteBuilding(_building.id);
+              // await _buildingService.deleteBuilding(_building.id);
               Navigator.pop(
                   context); // Assuming you want to close the dialog and return to the previous screen
             },

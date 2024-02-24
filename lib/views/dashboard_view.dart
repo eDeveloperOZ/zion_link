@@ -49,10 +49,9 @@ class _DashboardViewState extends State<DashboardView> {
   Future<void> addBuilding(Building newBuilding) async {
     try {
       await BuildingService().addBuilding(newBuilding);
-      reloadBuildings(); // Refresh the buildings list
+      reloadBuildings();
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: SuccessMessageWidget(
-            message: 'הבניין נוסף בהצלחה'), // Use SuccessMessageWidget
+        content: SuccessMessageWidget(message: 'הבניין נוסף בהצלחה'),
         backgroundColor: Colors.green,
       ));
     } catch (e) {
@@ -108,17 +107,32 @@ class _DashboardViewState extends State<DashboardView> {
   Widget _buildFloatingActionButton() {
     return Padding(
       padding: const EdgeInsets.only(bottom: 20.0), // Adjust padding as needed
-      child: Align(
-        alignment: Alignment
-            .bottomCenter, // Align to the bottom center for the add building button
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment
-              .spaceBetween, // Space between to push settings to the right
-          children: <Widget>[
-            // Spacer to push the settings button to the right
-            Spacer(),
-            // Add Building Button
-            FloatingActionButton.extended(
+      child: Stack(
+        children: <Widget>[
+          // Settings Button aligned to the left
+          Align(
+            alignment: Alignment.bottomLeft,
+            child: Padding(
+              padding: const EdgeInsets.only(left: 20.0),
+              child: FloatingActionButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => SettingView(),
+                    ),
+                  );
+                },
+                heroTag: 'settingsButton',
+                child: Icon(Icons.settings),
+                backgroundColor: Colors.grey,
+              ),
+            ),
+          ),
+          // Centered Add Building Button
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: FloatingActionButton.extended(
               onPressed: () {
                 Navigator.push(
                   context,
@@ -134,28 +148,13 @@ class _DashboardViewState extends State<DashboardView> {
                   }
                 });
               },
+              heroTag: 'addBuildingButton',
               icon: Icon(Icons.add),
               label: Text('הוסף בניין'),
               backgroundColor: Colors.green,
             ),
-            // Padding for settings button to ensure it's pushed to the right with some space
-            Padding(
-              padding: const EdgeInsets.only(left: 20.0),
-              child: FloatingActionButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => SettingView(),
-                    ),
-                  );
-                },
-                child: Icon(Icons.settings),
-                backgroundColor: Colors.grey,
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
