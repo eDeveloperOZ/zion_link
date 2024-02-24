@@ -8,23 +8,32 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v3 # Updated to a version that supports Node.js 20
-      with:
-        fetch-depth: 0
+    - name: Checkout code
+      uses: actions/checkout@v3
 
     - name: Set up Flutter
       uses: subosito/flutter-action@v2
       with:
-        channel: 'beta' # Uses the beta channel, adjust as needed
+        channel: 'beta'
 
     - name: Install dependencies
       run: flutter pub get
 
     - name: Build Windows
-      run: flutter build windows --release 
+      run: flutter build windows --release
+      env:
+        FLUTTER_ROOT: C:\hostedtoolcache\windows\flutter\beta-3.20.0-1.2.pre-x64
+        PUB_CACHE: C:\hostedtoolcache\windows\flutter\beta-3.20.0-1.2.pre-x64/.pub-cache
+
+    - name: Echo Build Completion
+      run: echo "Build completed successfully"
+
+    - name: List Build Output
+      run: dir build\windows\runner\
+      shell: powershell
 
     - name: Upload Artifact
-      uses: actions/upload-artifact@v3 # Updated to a version that supports Node.js 20
+      uses: actions/upload-artifact@v3
       with:
         name: windows-build
         path: build/windows/runner/**
