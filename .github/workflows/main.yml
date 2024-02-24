@@ -1,0 +1,31 @@
+name: Build Flutter Windows App
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    name: Build Windows
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
+    - name: Set up Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '0.0.1' # Specify the Flutter version you're using
+        channel: 'beta' # You can choose between 'stable', 'beta', 'dev', or 'master'
+
+    - name: Install dependencies
+      run: flutter pub get
+
+    - name: Build Windows
+      run: flutter build windows
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: windows-build
+        path: build/windows/runner/Release
