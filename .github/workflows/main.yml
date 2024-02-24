@@ -20,7 +20,7 @@ jobs:
       run: flutter pub get
 
     - name: Build Windows
-      run: flutter build windows --release
+      run: flutter build windows --release -v
       env:
         FLUTTER_ROOT: C:\hostedtoolcache\windows\flutter\beta-3.20.0-1.2.pre-x64
         PUB_CACHE: C:\hostedtoolcache\windows\flutter\beta-3.20.0-1.2.pre-x64/.pub-cache
@@ -28,8 +28,10 @@ jobs:
     - name: Echo Build Completion
       run: echo "Build completed successfully"
 
-    - name: List Build Output
-      run: dir build\windows\runner\
+    - name: List Build Output (if exists)
+      run: |
+        if (Test-Path build\windows\runner\) { dir build\windows\runner\ }
+        else { echo "Build directory does not exist" }
       shell: powershell
 
     - name: Upload Artifact
