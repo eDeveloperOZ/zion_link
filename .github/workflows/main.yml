@@ -16,6 +16,9 @@ jobs:
       with:
         channel: 'beta'
 
+    - name: Verify flutter 
+      run: flutter doctor -v 
+
     - name: Install dependencies
       run: flutter pub get
 
@@ -25,14 +28,16 @@ jobs:
         FLUTTER_ROOT: C:\hostedtoolcache\windows\flutter\beta-3.20.0-1.2.pre-x64
         PUB_CACHE: C:\hostedtoolcache\windows\flutter\beta-3.20.0-1.2.pre-x64/.pub-cache
 
-    - name: Echo Build Completion
-      run: echo "Build completed successfully"
-
-    - name: List Build Output (if exists)
+    - name: Check Build Directory
       run: |
-        if (Test-Path build\windows\runner\) { dir build\windows\runner\ }
-        else { echo "Build directory does not exist" }
+        if (Test-Path build\windows\runner\) {
+          echo "Build directory exists"
+          dir build\windows\runner\
+        } else {
+          echo "Build directory does not exist"
+        }
       shell: powershell
+
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v3
