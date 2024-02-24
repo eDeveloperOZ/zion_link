@@ -43,5 +43,5 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: windows-build
-        path: build/windows/runner/**
+        path: build/windows/x64/runner/Release/*
         if-no-files-found: warn
