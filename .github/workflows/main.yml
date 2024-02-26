@@ -1,6 +1,9 @@
 name: Build Flutter Windows App
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - main
 
 jobs:
   build:
