@@ -12,7 +12,7 @@ class Expense {
     required this.amount,
     required this.date,
     required this.categoryId,
-    this.filePath, // Initialize filePath in the constructor
+    this.filePath, // Initialize filePath with null
   });
 
   factory Expense.fromJson(Map<String, dynamic> json) {

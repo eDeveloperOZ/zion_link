@@ -34,7 +34,7 @@ Here is a table to keep track of tasks for the Zion Link project and their compl
 | Task Description | Status       |
 |------------------|--------------|
 | Add a filter option for the attendent paymetns  | ✅         |
-| Add a password to delete a building  | 🚧 Under Work |
+| Add a password to delete a building  | ✅ |
 | Add a report generator button  | ❌  |
 | Add an option for an apartment for have a debt from the past  | ❌ |
 

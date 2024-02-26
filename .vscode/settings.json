@@ -1,3 +1,4 @@
 {
-    "cmake.sourceDirectory": "/Users/ofirozeri/development/zion_link/linux"
+    "cmake.sourceDirectory": "/Users/ofirozeri/development/zion_link/linux",
+    "java.configuration.updateBuildConfiguration": "interactive"
 }
