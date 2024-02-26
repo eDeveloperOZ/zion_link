@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../utils/file_storage.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class SettingView extends StatelessWidget {
   @override
@@ -21,7 +22,16 @@ class SettingView extends StatelessWidget {
                   message: snapshot.data, // Use the data from the snapshot here
                   child: ElevatedButton(
                     onPressed: () {
-                      // Placeholder for opening file location
+                      final String? filePath = snapshot.data;
+                      if (filePath != null) {
+                        // Assuming LocalStorage().getFilePath() returns a path to a directory
+                        // and using a method to open the directory
+                        openDirectory(filePath);
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('לא נמצא נתיב לפתיחה')),
+                        );
+                      }
                     },
                     child: Text('פתח מיקום קבצים'),
                   ),
@@ -35,5 +45,12 @@ class SettingView extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+Future<void> openDirectory(String filePath) async {
+  final Uri uri = Uri.file(filePath);
+  if (!await launchUrl(uri)) {
+    throw 'Could not open $filePath';
   }
 }

@@ -23,6 +23,7 @@ class DeleteBuildingDialog extends StatelessWidget {
             bool? shouldDelete = await ConfirmDialog.display(
               context,
               message: 'האם אתה בטוח שברצונך למחוק את הבניין?',
+              requiredPassword: true,
               onConfirm: (bool result) {
                 return result; // This will be passed as the result of showDialog
               },
