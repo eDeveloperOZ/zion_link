@@ -1,0 +1,4 @@
+At the file at hand you will have a copy of a repository that at some point of it's development had a bug where the variable selected_category is always receiving the null value.
+Your task is to figure out why the issue happens and how to solve it. you may modify the code as you see fit but you must maintain the repository set of conventions.
+You may inquire the team member that assigned you with the task for any clarification that you might have.
+Good luck!
