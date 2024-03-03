@@ -81,6 +81,7 @@ class _DashboardViewState extends State<DashboardView> {
               MaterialPageRoute(
                   builder: (context) => BuildingDetailView(
                       building: building,
+                      onExpenseAdded: reloadBuildings,
                       onBuildingDeleted: reloadBuildings,
                       onBuildingUpdated: updateBuilding)),
             ).then((_) => reloadBuildings());

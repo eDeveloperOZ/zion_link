@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../models/expense.dart';
 import 'edit_expense_view.dart';
 import '../services/expense_service.dart'; // Import this to use services for CRUD operations
+import '../widgets/delete_button.dart'; // Import DeleteButton widget
+import '../widgets/display_document_widget.dart'; // Import DisplayDocumentWidget for showing documents
 
 class AttendantExpensesView extends StatefulWidget {
   const AttendantExpensesView({Key? key, required this.buildingId})
@@ -39,22 +41,40 @@ class _AttendantExpensesViewState extends State<AttendantExpensesView> {
   Widget _buildExpenseItem(Expense expense, BuildContext context, int index) {
     return Tooltip(
       message: 'לחץ לערוך',
-      child: GestureDetector(
+      child: ListTile(
+        title: Text('${expense.categoryId} - ₪${expense.amount.toString()}'),
+        subtitle: Text(expense.title),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(expense.date.toString()),
+            if (expense.filePath != null) // Check if the file path exists
+              DisplayDocumentWidget(
+                  filePath: expense.filePath), // Display the document widget
+            DeleteButton(
+              onDelete: () async {
+                await ExpenseService()
+                    .deleteExpense(widget.buildingId, expense.id);
+                _loadExpenses(widget
+                    .buildingId); // Reload expenses to reflect the deletion
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('הוצאה נמחקה בהצלחה')),
+                );
+              },
+            ),
+          ],
+        ),
         onTap: () async {
           await Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => EditExpenseView(
-                  payment: expenses[index], buildingId: this.widget.buildingId),
+                  payment: expenses[index], buildingId: widget.buildingId),
             ),
           );
-          _loadExpenses(this.widget.buildingId);
+          _loadExpenses(
+              widget.buildingId); // Reload expenses after potential edit
         },
-        child: ListTile(
-          title: Text('${expense.categoryId} - ₪${expense.amount.toString()}'),
-          subtitle: Text(expense.title),
-          trailing: Text(expense.date.toString()),
-        ),
       ),
     );
   }

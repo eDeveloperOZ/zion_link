@@ -32,6 +32,7 @@ class Expense {
   Map<String, dynamic> toJson() {
     final data = {
       'id': id,
+      'buildingId': buildingId,
       'title': title,
       'amount': amount,
       'date': date.toIso8601String(),

@@ -1,5 +1,4 @@
 import 'package:zion_link/services/building_service.dart';
-
 import '../models/expense.dart';
 import 'storage_service.dart';
 
@@ -11,7 +10,8 @@ class ExpenseService {
     for (var building in buildings) {
       if (building.id == buildingId) {
         var buildingExpenses = building.expenses as List;
-        expenses.addAll(buildingExpenses.map((item) => Expense.fromJson(item)));
+        expenses.addAll(buildingExpenses.map((item) =>
+            item is Map<String, dynamic> ? Expense.fromJson(item) : item));
       }
     }
     return expenses;
@@ -23,14 +23,21 @@ class ExpenseService {
   }
 
   Future<void> addExpenseToBuilding(String buildingId, Expense expense) async {
-    final buildings = await buildingService.getAllBuildings();
+    final List buildings = await buildingService.getAllBuildings();
+    bool found = false;
     for (var building in buildings) {
       if (building.id == buildingId) {
         final List<Expense> expenses = building.expenses;
         expenses.add(expense);
         building.expenses = expenses;
+        found = true;
         break;
       }
+    }
+    if (found) {
+      await StorageService.writeBuildings(buildings);
+    } else {
+      print("Building with ID $buildingId not found.");
     }
   }
 

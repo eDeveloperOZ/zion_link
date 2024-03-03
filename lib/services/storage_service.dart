@@ -215,7 +215,7 @@ class StorageService {
     return []; // Return an empty list if the building or its payments are not found
   }
 
-  static Future<void> updatePayment(Payment updatedPayment) async {
+  Future<void> updatePayment(Payment updatedPayment) async {
     final List buildings = await getAllBuildings();
     bool foundPayment = false;
     for (var building in buildings) {
@@ -243,20 +243,26 @@ class StorageService {
     }
   }
 
-  static Future<void> deletePayment(String buildingId, String paymentId) async {
+  Future<void> deletePayment(String buildingId, String paymentId) async {
     final List buildings = await getAllBuildings();
     bool foundBuilding = false;
     bool foundPayment = false;
     for (var building in buildings) {
       if (building['id'] == buildingId) {
         foundBuilding = true;
-        final List payments = building['payments'] ?? [];
-        final int index = payments.indexWhere((p) => p['id'] == paymentId);
-        if (index != -1) {
-          payments.removeAt(index);
-          foundPayment = true;
-          print("Payment with ID $paymentId removed.");
-          break;
+        final List apartments = building['apartments'] ?? [];
+        for (var apartment in apartments) {
+          final List payments = apartment['payments'] ?? [];
+          final int index = payments.indexWhere((p) => p['id'] == paymentId);
+          if (index != -1) {
+            payments.removeAt(index);
+            foundPayment = true;
+            print("Payment with ID $paymentId removed.");
+            break; // Breaks out of the apartments loop once payment is found and removed
+          }
+        }
+        if (foundPayment) {
+          break; // Breaks out of the buildings loop if payment is found and removed
         }
       }
     }
@@ -265,7 +271,8 @@ class StorageService {
     } else if (!foundPayment) {
       print("Payment with ID $paymentId not found in building $buildingId.");
     } else {
-      await writeBuildings(buildings);
+      await writeBuildings(
+          buildings); // Save changes only if a payment was found and removed
     }
   }
 }

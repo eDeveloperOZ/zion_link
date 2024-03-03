@@ -26,7 +26,7 @@ class ApartmentRow extends StatelessWidget {
             ),
           ),
           Expanded(
-            child: Text('${apartment.yearlyPaymentAmount.toInt()} תשלום שנתי',
+            child: Text(' תשלום שנתי ${apartment.yearlyPaymentAmount.toInt()}',
                 style: TextStyle(fontSize: 25)),
           ),
           GestureDetector(

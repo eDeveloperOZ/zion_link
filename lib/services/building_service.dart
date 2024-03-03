@@ -39,4 +39,15 @@ class BuildingService {
     buildings.removeWhere((item) => item['id'] == buildingId);
     await StorageService.writeBuildings(buildings);
   }
+
+  Future<double> calculateTotalBalance(String buildingId) async {
+    final building = await getBuildingById(buildingId);
+    double totalBalance = building.balance;
+    for (var apartment in building.apartments) {
+      for (var payment in apartment.payments) {
+        totalBalance += payment.amount;
+      }
+    }
+    return totalBalance;
+  }
 }

@@ -7,10 +7,13 @@ import 'all_expenses_button.dart'; // Import the AllExpenses widget
 
 class ExpenseReportDialog extends StatefulWidget {
   final String buildingId;
+  final Function
+      onExpenseAdded; // Define a callback for when an expense is added
 
   ExpenseReportDialog({
     Key? key,
     required this.buildingId,
+    required this.onExpenseAdded, // Require the callback in the constructor
   }) : super(key: key);
 
   @override
@@ -76,6 +79,11 @@ class _ExpenseReportDialogState extends State<ExpenseReportDialog> {
         AllExpensesButton(
           expenses: _expenses,
           buildingId: widget.buildingId,
+          onExpensesUpdated: () {
+            setState(() {
+              // Update logic here, if any
+            });
+          }, // Pass the method here
         ),
         CategoryDropdown(
           categories: [
@@ -125,7 +133,15 @@ class _ExpenseReportDialogState extends State<ExpenseReportDialog> {
         child: Text('ביטול'),
       ),
       TextButton(
-        onPressed: () => _submitExpenseReport(context),
+        onPressed: () {
+          _submitExpenseReport(context);
+          setState(() {
+            _amountController.clear();
+            _noteController.clear();
+            _selectedCategory = null;
+            _filePath = null;
+          });
+        },
         child: Text('שלח'),
       ),
     ];
@@ -146,6 +162,11 @@ class _ExpenseReportDialogState extends State<ExpenseReportDialog> {
 
     ExpenseService expenseService = ExpenseService();
     await expenseService.addExpenseToBuilding(widget.buildingId, newExpense);
+
+    widget.onExpenseAdded();
+    setState(() {
+      _expenses.add(newExpense);
+    });
     Navigator.of(context).pop(); // Close the dialog
   }
 }

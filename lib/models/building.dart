@@ -4,6 +4,7 @@ import 'expense.dart';
 class Building {
   final String id;
   String name;
+  double balance;
   final String address;
   List<Apartment> apartments;
   List<Expense> expenses;
@@ -11,14 +12,16 @@ class Building {
   Building(
       {required this.id,
       required this.name,
+      this.balance = 0,
       required this.address,
       required this.apartments,
       required this.expenses});
 
   Map<String, dynamic> toJson() {
     return {
-      'id': id, // Serialize id field
+      'id': id,
       'name': name,
+      'balance': balance,
       'address': address,
       'apartments': apartments.map((apartment) => apartment.toJson()).toList(),
       'expenses': expenses.map((expense) => expense.toJson()).toList(),
@@ -29,6 +32,7 @@ class Building {
     return Building(
         id: json['id'], // Deserialize id field
         name: json['name'],
+        balance: json['balance']?.toDouble(),
         address: json['address'],
         apartments: (json['apartments'] as List)
             .map((apartmentJson) => Apartment.fromJson(apartmentJson))

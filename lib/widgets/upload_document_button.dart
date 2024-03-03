@@ -1,5 +1,7 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'dart:io';
+import '../services/file_upload_service.dart';
 
 class UploadDocumentButton extends StatefulWidget {
   final Function(String?) onFilePicked;
@@ -22,8 +24,12 @@ class _UploadDocumentButtonState extends State<UploadDocumentButton> {
       onPressed: () async {
         final result = await FilePicker.platform.pickFiles();
         if (result != null && result.files.single.path != null) {
+          final File file = File(result.files.single.path!);
+          final fileName = result.files.single.name;
+          // Save the file using FileUploadService
+          final savedFile = await FileUploadService.saveFile(fileName, file);
           setState(() {
-            filePath = result.files.single.path;
+            filePath = savedFile.path;
           });
           widget.onFilePicked(filePath);
         }

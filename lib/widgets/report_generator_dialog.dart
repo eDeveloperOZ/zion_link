@@ -6,7 +6,7 @@ class ReportGeneratorDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Center(child: Text('צור דוח')),
+      title: Center(child: Text('דוחות')),
       content: Text('כאן יוצג הדוח'),
       actions: [
         Center(

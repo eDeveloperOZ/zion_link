@@ -1,11 +1,11 @@
-import 'package:zion_link/models/building.dart';
 import '../models/payment.dart';
 import 'apartment_service.dart';
-import 'building_service.dart';
 import 'storage_service.dart';
-import '../models/apartment.dart';
 
 class PaymentService {
+  StorageService _storageService = StorageService();
+  ApartmentService _apartmentService = ApartmentService();
+
   Future<List<Payment>> getAllPaymentsForApartment(
       String buildingId, String apartmentId) async {
     final apartmentService = ApartmentService();
@@ -33,17 +33,33 @@ class PaymentService {
   }
 
   Future<void> updatePayment(String apartmentId, Payment updatedPayment) async {
-    final apartmentService = ApartmentService();
-    final apartment = await apartmentService.getApartmentById(apartmentId);
-    apartment?.payments = apartment.payments
-        .map((payment) =>
-            payment.id == updatedPayment.id ? updatedPayment : payment)
-        .toList();
+    // Retrieve the apartment to ensure it exists
+    final apartment = await _apartmentService.getApartmentById(apartmentId);
+    if (apartment != null) {
+      // Update the payment in the apartment's payment list
+      int paymentIndex = apartment.payments
+          .indexWhere((payment) => payment.id == updatedPayment.id);
+      if (paymentIndex != -1) {
+        apartment.payments[paymentIndex] = updatedPayment;
+        // Now, use StorageService to persist the changes
+        await _storageService.updatePayment(updatedPayment);
+      } else {
+        print(
+            "Payment with ID ${updatedPayment.id} not found in apartment $apartmentId.");
+      }
+    } else {
+      print("Apartment with ID $apartmentId not found.");
+    }
   }
 
   Future<void> deletePayment(String apartmentId, String paymentId) async {
     final apartmentService = ApartmentService();
+    final storageService = StorageService();
     final apartment = await apartmentService.getApartmentById(apartmentId);
-    apartment?.payments.removeWhere((payment) => payment.id == paymentId);
+    if (apartment != null) {
+      await storageService.deletePayment(apartment.buildingId, paymentId);
+    } else {
+      print("Apartment with ID $apartmentId not found.");
+    }
   }
 }
