@@ -5,7 +5,7 @@ import '../models/apartment.dart';
 import '../models/expense.dart';
 import '../models/payment.dart';
 
-class LocalStorage {
+class StorageService {
   static Future<String> get _localPath async {
     final directory = await getApplicationDocumentsDirectory();
     return directory.path;
@@ -22,12 +22,13 @@ class LocalStorage {
     return File('$path/buildings.json');
   }
 
+  // Buildings
   static Future<File> writeBuildings(List buildings) async {
     final file = await _localFile;
     return file.writeAsString(json.encode(buildings));
   }
 
-  static Future<List> readBuildings() async {
+  static Future<List> getAllBuildings() async {
     try {
       final file = await _localFile;
       final contents = await file.readAsString();
@@ -43,9 +44,56 @@ class LocalStorage {
     }
   }
 
+  static Future<void> addExpenseToBuilding(
+      String buildingId, Expense newExpense) async {
+    final List buildings = await getAllBuildings();
+    bool found = false;
+    for (var building in buildings) {
+      if (building['id'] == buildingId) {
+        final List expenses = building['expenses'] ?? [];
+        expenses.add(
+            newExpense.toJson()); // Assuming Expense class has a toJson method
+        building['expenses'] = expenses;
+        found = true;
+        break;
+      }
+    }
+    if (!found) {
+      print("Building with ID $buildingId not found.");
+    } else {
+      await writeBuildings(buildings);
+    }
+  }
+
+  Future<void> addPaymentToBuilding(
+      String buildingId, Payment newPayment) async {
+    final List buildings = await getAllBuildings();
+    bool found = false;
+    for (var building in buildings) {
+      if (building['id'] == buildingId) {
+        final List apartments = building['apartments'];
+        final int apartmentIndex = apartments.indexWhere(
+            (apartment) => apartment['id'] == newPayment.apartmentId);
+        if (apartmentIndex != -1) {
+          apartments[apartmentIndex]['payments'] =
+              apartments[apartmentIndex]['payments'] ?? [];
+          apartments[apartmentIndex]['payments'].add(newPayment.toJson());
+        }
+        found = true;
+        break;
+      }
+    }
+    if (!found) {
+      print("Building with ID $buildingId not found.");
+    } else {
+      await writeBuildings(buildings);
+    }
+  }
+
+  // Apartments
   static Future<void> updateApartment(Apartment updatedApartment) async {
     final List buildings =
-        await readBuildings(); // Assuming this returns a list of buildings
+        await getAllBuildings(); // Assuming this returns a list of buildings
     for (var building in buildings) {
       final List apartments = building['apartments'];
       final int index = apartments
@@ -60,7 +108,7 @@ class LocalStorage {
   }
 
   static Future<void> writeApartment(Apartment apartment) async {
-    final List buildings = await readBuildings();
+    final List buildings = await getAllBuildings();
     bool found = false;
     for (var building in buildings) {
       final List apartments = building['apartments'];
@@ -80,7 +128,7 @@ class LocalStorage {
   }
 
   static Future<Apartment?> readApartment(String id) async {
-    final List buildings = await readBuildings();
+    final List buildings = await getAllBuildings();
     for (var building in buildings) {
       final List apartments = building['apartments'];
       final index = apartments.indexWhere((apartment) => apartment['id'] == id);
@@ -91,29 +139,9 @@ class LocalStorage {
     return null; // Return null if apartment with given id is not found
   }
 
-  static Future<void> addExpenseToBuilding(
-      String buildingId, Expense newExpense) async {
-    final List buildings = await readBuildings();
-    bool found = false;
-    for (var building in buildings) {
-      if (building['id'] == buildingId) {
-        final List expenses = building['expenses'] ?? [];
-        expenses.add(
-            newExpense.toJson()); // Assuming Expense class has a toJson method
-        building['expenses'] = expenses;
-        found = true;
-        break;
-      }
-    }
-    if (!found) {
-      print("Building with ID $buildingId not found.");
-    } else {
-      await writeBuildings(buildings);
-    }
-  }
-
+  // Expenses
   static Future<void> updateExpense(Expense expense) async {
-    final List buildings = await readBuildings();
+    final List buildings = await getAllBuildings();
     bool foundExpense = false;
     for (var building in buildings) {
       if (building['expenses'] != null) {
@@ -135,7 +163,7 @@ class LocalStorage {
   }
 
   static Future<void> deleteExpense(String buildingId, String expenseId) async {
-    final List buildings = await readBuildings();
+    final List buildings = await getAllBuildings();
     bool foundBuilding = false;
     bool foundExpense = false;
     for (var building in buildings) {
@@ -161,7 +189,7 @@ class LocalStorage {
   }
 
   static Future<List<Expense>> readExpenses(String buildingId) async {
-    final List buildings = await readBuildings();
+    final List buildings = await getAllBuildings();
     for (var building in buildings) {
       if (building['id'] == buildingId) {
         final List expensesJson = building['expenses'] ?? [];
@@ -172,30 +200,10 @@ class LocalStorage {
     }
     return []; // Return an empty list if the building or its expenses are not found
   }
-  // Add to the LocalStorage class
 
-  static Future<void> addPaymentToBuilding(
-      String buildingId, Payment newPayment) async {
-    final List buildings = await readBuildings();
-    bool found = false;
-    for (var building in buildings) {
-      if (building['id'] == buildingId) {
-        final List payments = building['payments'] ?? [];
-        payments.add(newPayment.toJson());
-        building['payments'] = payments;
-        found = true;
-        break;
-      }
-    }
-    if (!found) {
-      print("Building with ID $buildingId not found.");
-    } else {
-      await writeBuildings(buildings);
-    }
-  }
-
+  // Payments
   static Future<List<Payment>> readPayments(String buildingId) async {
-    final List buildings = await readBuildings();
+    final List buildings = await getAllBuildings();
     for (var building in buildings) {
       if (building['id'] == buildingId) {
         final List paymentsJson = building['payments'] ?? [];
@@ -208,7 +216,7 @@ class LocalStorage {
   }
 
   static Future<void> updatePayment(Payment updatedPayment) async {
-    final List buildings = await readBuildings(); // Corrected to readBuildings
+    final List buildings = await getAllBuildings();
     bool foundPayment = false;
     for (var building in buildings) {
       final List apartments =
@@ -219,7 +227,7 @@ class LocalStorage {
         final int index =
             payments.indexWhere((p) => p['id'] == updatedPayment.id);
         if (index != -1) {
-          payments[index] = updatedPayment;
+          payments[index] = updatedPayment.toJson();
           foundPayment = true;
           break; // Break the inner loop
         }
@@ -236,7 +244,7 @@ class LocalStorage {
   }
 
   static Future<void> deletePayment(String buildingId, String paymentId) async {
-    final List buildings = await readBuildings();
+    final List buildings = await getAllBuildings();
     bool foundBuilding = false;
     bool foundPayment = false;
     for (var building in buildings) {

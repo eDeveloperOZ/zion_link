@@ -2,9 +2,14 @@ import 'package:flutter/material.dart';
 import '../../../models/apartment.dart';
 
 class AddApartmentDialog extends StatefulWidget {
+  final String buildingId;
   final Function(Apartment) onAdd;
 
-  const AddApartmentDialog({Key? key, required this.onAdd}) : super(key: key);
+  const AddApartmentDialog({
+    Key? key,
+    required this.onAdd,
+    required this.buildingId,
+  }) : super(key: key);
 
   @override
   _AddApartmentDialogState createState() => _AddApartmentDialogState();
@@ -21,36 +26,27 @@ class _AddApartmentDialogState extends State<AddApartmentDialog> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        _buildAddIconButton(context),
+        IconButton(
+          icon: Icon(Icons.add, size: 24),
+          onPressed: () {
+            showDialog(
+              context: context,
+              builder: (builderContext) {
+                return _addApartmentDialog(builderContext);
+              },
+            );
+          },
+        ),
         Text('הוסף דירה חדשה'), // Text under the icon
       ],
     );
   }
 
-  Widget _buildAddIconButton(BuildContext context) {
-    return IconButton(
-      icon: Icon(Icons.add, size: 24),
-      onPressed: () => _onAddButtonPressed(context),
-    );
-  }
-
-  Future<void> _onAddButtonPressed(BuildContext context) async {
-    final Apartment? newApartment = await _showAddApartmentDialog(context);
-    if (newApartment != null) {
-      widget.onAdd(newApartment);
-    }
-  }
-
-  Future<Apartment?> _showAddApartmentDialog(BuildContext context) {
-    return showDialog<Apartment>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('הוסף דירה חדשה'),
-          content: _buildDialogContent(),
-          actions: _buildDialogActions(context),
-        );
-      },
+  Widget _addApartmentDialog(BuildContext context) {
+    return AlertDialog(
+      title: Text('הוסף דירה חדשה'),
+      content: _buildDialogContent(),
+      actions: _buildDialogActions(context),
     );
   }
 
@@ -92,10 +88,16 @@ class _AddApartmentDialogState extends State<AddApartmentDialog> {
       id: DateTime.now()
           .millisecondsSinceEpoch
           .toString(), // Unique ID based on timestamp
+      buildingId: widget.buildingId,
       attendantName: attendantName,
       yearlyPaymentAmount: yearlyPaymentAmount,
       payments: [],
     );
-    Navigator.of(context).pop(newApartment);
+
+    // Call the onAdd callback with the newApartment
+    widget.onAdd(newApartment);
+
+    // Then close the dialog
+    Navigator.of(context).pop();
   }
 }

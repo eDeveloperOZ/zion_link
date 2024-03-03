@@ -24,7 +24,7 @@ class _AttendantExpensesViewState extends State<AttendantExpensesView> {
   Future<void> _loadExpenses(String buildingId) async {
     ExpenseService expenseService = ExpenseService();
     List<Expense> loadedExpenses =
-        await expenseService.fetchExpenses(buildingId);
+        await expenseService.getAllExpensesForBuilding(buildingId);
     setState(() {
       expenses = loadedExpenses;
     });

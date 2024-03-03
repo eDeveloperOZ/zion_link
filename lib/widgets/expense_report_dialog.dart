@@ -6,25 +6,24 @@ import 'upload_document_button.dart';
 import 'all_expenses_button.dart'; // Import the AllExpenses widget
 
 class ExpenseReportDialog extends StatefulWidget {
-  final List<Expense> expenses;
   final String buildingId;
-  final Function
-      onDialogOpened; // This callback function will be used to update the expenses
 
-  const ExpenseReportDialog(
-      {Key? key,
-      required this.expenses,
-      required this.buildingId,
-      required this.onDialogOpened}) // Ensure this is passed in the constructor
-      : super(key: key);
+  ExpenseReportDialog({
+    Key? key,
+    required this.buildingId,
+  }) : super(key: key);
 
   @override
   _ExpenseReportDialogState createState() => _ExpenseReportDialogState();
 }
 
 class _ExpenseReportDialogState extends State<ExpenseReportDialog> {
-  List<Expense> expenses = [];
-  String? selectedCategory;
+  final TextEditingController _amountController = TextEditingController();
+  final TextEditingController _noteController = TextEditingController();
+  String? _selectedCategory;
+  String? _filePath;
+  DateTime _selectedDate = DateTime.now();
+  List<Expense> _expenses = [];
 
   @override
   void initState() {
@@ -32,12 +31,12 @@ class _ExpenseReportDialogState extends State<ExpenseReportDialog> {
     _loadExpenses();
   }
 
-  Future<void> _loadExpenses() async {
+  void _loadExpenses() async {
     ExpenseService expenseService = ExpenseService();
     List<Expense> loadedExpenses =
-        await expenseService.fetchExpenses(widget.buildingId);
+        await expenseService.getAllExpensesForBuilding(widget.buildingId);
     setState(() {
-      expenses = loadedExpenses;
+      _expenses = loadedExpenses;
     });
   }
 
@@ -48,128 +47,105 @@ class _ExpenseReportDialogState extends State<ExpenseReportDialog> {
       children: [
         IconButton(
           icon: Icon(Icons.edit_note, size: 24),
-          onPressed: () async {
-            print('Before showDialog - selectedCategory: $selectedCategory');
-            await widget
-                .onDialogOpened(); // Call the onDialogOpened callback here
-            await showExpenseReportDialog(context, expenses, widget.buildingId,
-                _loadExpenses, selectedCategory, (String? newCategory) {
-              setState(() {
-                selectedCategory = newCategory;
-                print(
-                    'Inside showDialog callback - selectedCategory updated to: $selectedCategory');
-              });
-            });
-            print('After showDialog - selectedCategory: $selectedCategory');
-            // After the dialog is closed, you might want to refresh the expenses again
-            // to ensure any changes made in the dialog are reflected.
-            await _loadExpenses();
+          onPressed: () {
+            showDialog(
+              context: context,
+              builder: (builderContext) {
+                return _expenseReportDialog(builderContext);
+              },
+            );
           },
         ),
         Text('דיווח הוצאה'),
       ],
     );
   }
-}
 
-Future<String?> showExpenseReportDialog(
-    BuildContext context,
-    List<Expense> expenses,
-    String buildingId,
-    Future<void> Function() onExpensesUpdated,
-    String? selectedCategory, // Accept selectedCategory as a parameter
-    Function(String?)
-        onSelectCategory // Callback to update selectedCategory in the parent state
-    ) async {
-  String currentBuildingId = buildingId;
-  List<String> categories = [
-    'חשמלאי',
-    'מים',
-    'ארנונה',
-    'גינון',
-    'אינסטלטור',
-    'אחר...',
-  ];
-  await showDialog<void>(
-    context: context,
-    builder: (BuildContext context) {
-      final TextEditingController amountController = TextEditingController();
-      final TextEditingController noteController = TextEditingController();
-      String? filePath; // Define filePath here
-      DateTime selectedDate = DateTime.now();
+  Widget _expenseReportDialog(BuildContext context) {
+    return AlertDialog(
+      title: Text('דיווח הוצאות'),
+      content: _buildDialogContent(),
+      actions: _buildDialogActions(context),
+    );
+  }
 
-      return AlertDialog(
-        title: Text('דיווח הוצאות'),
-        content: StatefulBuilder(
-          builder: (BuildContext context, StateSetter setState) {
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                AllExpensesButton(
-                  expenses: expenses,
-                  buildingId: currentBuildingId,
-                  onExpensesUpdated: onExpensesUpdated,
-                ),
-                CategoryDropdown(
-                  categories: categories,
-                  selectedCategory: selectedCategory,
-                  onSelectCategory: onSelectCategory,
-                ),
-                TextFormField(
-                  controller: amountController,
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
-                    labelText: 'סכום',
-                  ),
-                ),
-                UploadDocumentButton(
-                  onFilePicked: (String? path) {
-                    setState(() {
-                      filePath = path;
-                    });
-                  },
-                ),
-                TextFormField(
-                  controller: noteController,
-                  decoration: InputDecoration(
-                    labelText: 'הערה',
-                  ),
-                ),
-                Text('מספר ההוצאות: ${expenses.length}'),
-                ElevatedButton(
-                  onPressed: () async {
-                    final double amount =
-                        double.tryParse(amountController.text) ?? 0.0;
-                    final String note = noteController.text;
-                    final Expense newExpense = Expense(
-                      id: DateTime.now().millisecondsSinceEpoch.toString(),
-                      title: note,
-                      amount: amount,
-                      date: selectedDate,
-                      categoryId: selectedCategory ?? 'אחר',
-                      filePath: filePath,
-                    );
-                    print('newExpense.categoryId: ${newExpense.categoryId}');
-                    ExpenseService expenseService = ExpenseService();
-                    await expenseService.addExpense(
-                        currentBuildingId, newExpense);
-                    setState(() {});
-                    Navigator.of(context).pop(); // Close the dialog
-                  },
-                  child: Text('שלח'),
-                ),
-              ],
-            );
+  Widget _buildDialogContent() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        AllExpensesButton(
+          expenses: _expenses,
+          buildingId: widget.buildingId,
+        ),
+        CategoryDropdown(
+          categories: [
+            'חשמלאי',
+            'מים',
+            'ארנונה',
+            'גינון',
+            'אינסטלטור',
+            'אחר...'
+          ],
+          selectedCategory: _selectedCategory,
+          onSelectCategory: (String? newValue) {
+            setState(() {
+              _selectedCategory = newValue;
+            });
           },
         ),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Center(child: Text('ביטול')),
+        TextFormField(
+          controller: _amountController,
+          keyboardType: TextInputType.number,
+          decoration: InputDecoration(
+            labelText: 'סכום',
           ),
-        ],
-      );
-    },
-  );
-  return selectedCategory; // Add this line before closing the dialog
+        ),
+        UploadDocumentButton(
+          onFilePicked: (String? path) {
+            setState(() {
+              _filePath = path;
+            });
+          },
+        ),
+        TextFormField(
+          controller: _noteController,
+          decoration: InputDecoration(
+            labelText: 'הערה',
+          ),
+        ),
+        Text('מספר ההוצאות: ${_expenses.length}'),
+      ],
+    );
+  }
+
+  List<Widget> _buildDialogActions(BuildContext context) {
+    return <Widget>[
+      TextButton(
+        onPressed: () => Navigator.of(context).pop(),
+        child: Text('ביטול'),
+      ),
+      TextButton(
+        onPressed: () => _submitExpenseReport(context),
+        child: Text('שלח'),
+      ),
+    ];
+  }
+
+  void _submitExpenseReport(BuildContext context) async {
+    final double amount = double.tryParse(_amountController.text) ?? 0.0;
+    final String note = _noteController.text;
+    final Expense newExpense = Expense(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      buildingId: widget.buildingId,
+      title: note,
+      amount: amount,
+      date: _selectedDate,
+      categoryId: _selectedCategory ?? 'אחר',
+      filePath: _filePath,
+    );
+
+    ExpenseService expenseService = ExpenseService();
+    await expenseService.addExpenseToBuilding(widget.buildingId, newExpense);
+    Navigator.of(context).pop(); // Close the dialog
+  }
 }

@@ -23,8 +23,8 @@ class _PaymentsDetailViewState extends State<PaymentsDetailView> {
       );
     } else {
       return ListView.builder(
-        shrinkWrap: true, // Important for embedding within another ListView
-        physics: NeverScrollableScrollPhysics(), // Prevents inner scroll issues
+        shrinkWrap: true,
+        physics: NeverScrollableScrollPhysics(),
         itemCount: widget.payments.length,
         itemBuilder: (context, index) {
           final payment = widget.payments[index];
@@ -38,19 +38,18 @@ class _PaymentsDetailViewState extends State<PaymentsDetailView> {
             child: ListTile(
               title: Text('${payment.amount}'),
               subtitle: Text('${payment.date} - ${payment.paymentMethod}'),
-              tileColor: Colors
-                  .transparent, // Make tileColor transparent to show Container color
+              tileColor: Colors.transparent,
               trailing: payment.isConfirmed
                   ? Icon(Icons.check, color: Colors.white)
                   : ElevatedButton(
                       child: Text('אשר תשלום'),
                       onPressed: () async {
-                        payment.confirm();
+                        final paymentToUpdate = await _paymentService
+                            .getPaymentById(payment.apartmentId, payment.id);
+                        paymentToUpdate?.isConfirmed = true;
                         await _paymentService.updatePayment(
-                          payment,
-                        );
-                        setState(
-                            () {}); // Rebuild the widget to reflect changes
+                            payment.apartmentId, paymentToUpdate!);
+                        setState(() {});
                       },
                     ),
             ),

@@ -1,23 +1,26 @@
 class Expense {
   final String id;
+  final String buildingId;
   final String title;
   final double amount;
   final DateTime date;
   final String categoryId;
-  final String? filePath; // Optional property for file path
+  final String? filePath;
 
   Expense({
     required this.id,
+    required this.buildingId,
     required this.title,
     required this.amount,
     required this.date,
     required this.categoryId,
-    this.filePath, // Initialize filePath with null
+    this.filePath,
   });
 
   factory Expense.fromJson(Map<String, dynamic> json) {
     return Expense(
       id: json['id'],
+      buildingId: json['buildingId'],
       title: json['title'],
       amount: json['amount'].toDouble(),
       date: DateTime.parse(json['date']),
@@ -44,6 +47,7 @@ class Expense {
 
   Expense copyWith({
     String? id,
+    String? buildingId,
     String? title,
     double? amount,
     DateTime? date,
@@ -52,6 +56,7 @@ class Expense {
   }) {
     return Expense(
       id: id ?? this.id,
+      buildingId: buildingId ?? this.buildingId,
       title: title ?? this.title,
       amount: amount ?? this.amount,
       date: date ?? this.date,

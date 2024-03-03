@@ -1,19 +1,19 @@
 import 'apartment.dart';
-import 'expense.dart'; // Ensure this import is present
+import 'expense.dart';
 
 class Building {
-  String id; // Added id field
+  final String id;
   String name;
-  final String address; // Ensure this line is present
-  List<Apartment> apartments; // Ensure this line is present
-  List<Expense> expenses; // Add this line
+  final String address;
+  List<Apartment> apartments;
+  List<Expense> expenses;
 
   Building(
       {required this.id,
       required this.name,
       required this.address,
       required this.apartments,
-      required this.expenses}); // Update this line
+      required this.expenses});
 
   Map<String, dynamic> toJson() {
     return {

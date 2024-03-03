@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/expense.dart';
-import '../utils/file_storage.dart';
+import '../services/storage_service.dart';
 import '../widgets/confirm_dialog_widget.dart';
 
 class EditExpenseView extends StatefulWidget {
@@ -55,7 +55,7 @@ class _EditExpenseViewState extends State<EditExpenseView> {
   Future<void> _updateExpense() async {
     if (_formKey.currentState!.validate()) {
       // Assuming an updateExpense method is defined in a suitable class
-      await LocalStorage.updateExpense(
+      await StorageService.updateExpense(
         widget.payment.copyWith(
           amount: double.parse(_amountController.text),
           title: _noteController.text,
@@ -77,7 +77,7 @@ class _EditExpenseViewState extends State<EditExpenseView> {
     );
 
     if (confirmDelete == true) {
-      await LocalStorage.deleteExpense(widget.buildingId, widget.payment.id);
+      await StorageService.deleteExpense(widget.buildingId, widget.payment.id);
       Navigator.of(context).pop(true);
     }
   }

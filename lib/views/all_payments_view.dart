@@ -20,12 +20,11 @@ class _AllPaymentsViewState extends State<AllPaymentsView> {
         IconButton(
           icon: const Icon(Icons.manage_accounts, size: 24),
           onPressed: () {
-            // Navigate to PaymentsDetailView
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) =>
-                      BuildingPaymentsView(building: widget.building)),
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return BuildingPaymentsView(building: widget.building);
+              },
             );
           },
         ),

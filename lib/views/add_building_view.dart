@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/building.dart';
-import '../utils/file_storage.dart';
+import '../services/storage_service.dart';
 
 class AddBuildingView extends StatelessWidget {
   final Function addBuildingCallback;
@@ -38,9 +38,9 @@ class AddBuildingView extends StatelessWidget {
               addBuildingCallback(newBuilding);
 
               // Read existing buildings, add the new one, then save
-              List existingBuildings = await LocalStorage.readBuildings();
+              List existingBuildings = await StorageService.getAllBuildings();
               existingBuildings.add(newBuilding.toJson());
-              await LocalStorage.writeBuildings(existingBuildings);
+              await StorageService.writeBuildings(existingBuildings);
 
               Navigator.pop(context, true);
             },

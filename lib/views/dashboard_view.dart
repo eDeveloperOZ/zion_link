@@ -16,7 +16,7 @@ class DashboardView extends StatefulWidget {
 }
 
 class _DashboardViewState extends State<DashboardView> {
-  List<Building> _localBuildings = []; // Local list to manage buildings
+  List<Building> _localBuildings = [];
 
   @override
   void initState() {
@@ -25,7 +25,8 @@ class _DashboardViewState extends State<DashboardView> {
   }
 
   void _loadBuildings() async {
-    List<Building> buildingsFromFile = await BuildingService().fetchBuildings();
+    List<Building> buildingsFromFile =
+        await BuildingService().getAllBuildings();
     if (buildingsFromFile.isNotEmpty) {
       setState(() {
         _localBuildings.addAll(buildingsFromFile);
@@ -34,7 +35,8 @@ class _DashboardViewState extends State<DashboardView> {
   }
 
   void reloadBuildings() async {
-    List<Building> buildingsFromFile = await BuildingService().fetchBuildings();
+    List<Building> buildingsFromFile =
+        await BuildingService().getAllBuildings();
     setState(() {
       _localBuildings.clear();
       _localBuildings.addAll(buildingsFromFile);
@@ -43,7 +45,7 @@ class _DashboardViewState extends State<DashboardView> {
 
   void updateBuilding(Building updatedBuilding) async {
     await BuildingService().updateBuilding(updatedBuilding);
-    reloadBuildings(); // Refresh the buildings list
+    reloadBuildings();
   }
 
   Future<void> addBuilding(Building newBuilding) async {

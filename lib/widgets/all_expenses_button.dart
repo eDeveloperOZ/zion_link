@@ -5,13 +5,13 @@ import '../views/attendant_expenses_view.dart';
 class AllExpensesButton extends StatelessWidget {
   final List<Expense> expenses;
   final String buildingId;
-  final Future<void> Function() onExpensesUpdated;
+  // final Future<void> Function() onExpensesUpdated;
 
   const AllExpensesButton({
     Key? key,
     required this.expenses,
     required this.buildingId,
-    required this.onExpensesUpdated,
+    // required this.onExpensesUpdated,
   }) : super(key: key);
 
   @override
@@ -29,7 +29,7 @@ class AllExpensesButton extends StatelessWidget {
             },
           );
           if (result == true) {
-            await onExpensesUpdated(); // Use the callback here
+            // await onExpensesUpdated(); // Use the callback here
           }
           // Trigger state update in parent widget if needed
         },

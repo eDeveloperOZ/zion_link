@@ -3,16 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:zion_link/views/all_payments_view.dart';
 import '../models/building.dart';
 import '../models/apartment.dart';
-import '../models/expense.dart';
 import '../services/building_service.dart';
+import '../services/apartment_service.dart';
 import 'payments_detail_view.dart';
 import '../widgets/add_apartment_dialog.dart';
 import '../widgets/apartment_row.dart';
 import '../widgets/edit_building_details_dialog.dart';
-import '../widgets/delete_building_dialog.dart';
+import '../widgets/delete_building_button.dart';
 import '../widgets/expense_report_dialog.dart';
 import '../widgets/edit_apartment_dialog.dart';
-import '../services/expense_service.dart';
+import '../widgets/report_generator_button.dart';
 
 // StatefulWidget for displaying detailed view of a building
 class BuildingDetailView extends StatefulWidget {
@@ -33,47 +33,21 @@ class BuildingDetailView extends StatefulWidget {
 }
 
 class _BuildingDetailViewState extends State<BuildingDetailView> {
-  late Building _building; // Use a local mutable building object
-  final BuildingService _buildingService =
-      BuildingService(); // Create an instance of BuildingService
+  late Building _building;
+  final BuildingService _buildingService = BuildingService();
+  final ApartmentService _apartmentService = ApartmentService();
 
   @override
   void initState() {
     super.initState();
-    _building =
-        widget.building; // Initialize _building with the widget's building
-  }
-
-  // Function to add a new apartment to the building and save the update
-  void _addApartmentAndSave(Apartment newApartment) async {
-    // Assuming BuildingService has a method to handle adding an apartment
-    await _buildingService.addApartmentToBuilding(_building.id, newApartment);
-    // Update the local state to reflect the change
-    setState(() {
-      _building.apartments.add(newApartment);
-    });
-  }
-
-  // Function to update the list of buildings in local storage
-  Future<void> _updateBuildingsInStorage() async {
-    await _buildingService.updateBuilding(_building);
-  }
-
-  // Function to fetch and update the expenses for the building
-  Future<void> _fetchAndUpdateExpenses() async {
-    // Assuming ExpenseService has a method to fetch expenses for a building
-    List<Expense> updatedExpenses =
-        await ExpenseService().fetchExpenses(_building.id);
-    setState(() {
-      _building.expenses = updatedExpenses;
-    });
+    _building = widget.building;
   }
 
   void _onPaymentReported() async {
-    Building updatedBuilding =
-        await BuildingService().fetchBuilding(_building.id); // Use _building.id
+    Building updatedBuilding = await BuildingService()
+        .getBuildingById(_building.id); // Use _building.id
     setState(() {
-      _building = updatedBuilding; // Update the local _building object
+      _building = updatedBuilding;
     });
   }
 
@@ -135,32 +109,30 @@ class _BuildingDetailViewState extends State<BuildingDetailView> {
             },
           ),
           ExpenseReportDialog(
-            expenses: _building.expenses,
             buildingId: _building.id,
-            onDialogOpened: _fetchAndUpdateExpenses,
           ),
           AllPaymentsView(building: _building),
-          AddApartmentDialog(onAdd: (Apartment apartment) {
-            _addApartmentAndSave(apartment);
-          }),
+          AddApartmentDialog(
+              buildingId: _building.id,
+              onAdd: (Apartment newApartment) async {
+                await _apartmentService.addApartment(newApartment);
+                _building.apartments.add(newApartment);
+                setState(() {});
+              }),
           EditApartmentDialog(
             apartments: _building.apartments,
-            onApartmentsUpdated: (List<Apartment> updatedApartments) {
-              // Assuming you have a method to handle the updated list of apartments
-              setState(() {
-                _building.apartments = updatedApartments;
-              });
-              // Optionally, update the building in storage or backend
-              _updateBuildingsInStorage();
+            onApartmentsUpdated: (List<Apartment> updatedApartments) async {
+              _building.apartments = updatedApartments;
+              await _buildingService.updateBuilding(_building);
+              setState(() {});
             },
           ),
-          IconButton(icon: Icon(Icons.logout, size: 24), onPressed: () {}),
-          DeleteBuildingDialog(
+          ReportGeneratorButton(),
+          DeleteBuildingButton(
             buildingID: _building.id,
             onBuildingDeleted: () async {
-              // await _buildingService.deleteBuilding(_building.id);
-              Navigator.pop(
-                  context); // Assuming you want to close the dialog and return to the previous screen
+              await _buildingService.deleteBuilding(_building.id);
+              Navigator.pop(context);
             },
           ),
         ],
@@ -170,7 +142,7 @@ class _BuildingDetailViewState extends State<BuildingDetailView> {
 
   AppBar _buildAppBar() {
     return AppBar(
-      title: Text(_building.name), // Display the building name
+      title: Text(_building.name),
     );
   }
 
