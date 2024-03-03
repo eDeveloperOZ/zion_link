@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../utils/file_storage.dart';
+import '../services/storage_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class SettingView extends StatelessWidget {
@@ -11,7 +11,8 @@ class SettingView extends StatelessWidget {
       ),
       body: Center(
         child: FutureBuilder<String>(
-          future: LocalStorage().getFilePath(), // This is your async operation
+          future:
+              StorageService().getFilePath(), // This is your async operation
           builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
             if (snapshot.connectionState == ConnectionState.done) {
               if (snapshot.hasError) {

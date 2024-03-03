@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/building.dart';
-import 'payments_detail_view.dart';
+import 'attendant_payments_view.dart';
 
 class AllPaymentsView extends StatefulWidget {
   final Building building;
@@ -20,12 +20,11 @@ class _AllPaymentsViewState extends State<AllPaymentsView> {
         IconButton(
           icon: const Icon(Icons.manage_accounts, size: 24),
           onPressed: () {
-            // Navigate to PaymentsDetailView
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) =>
-                      BuildingPaymentsView(building: widget.building)),
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return BuildingPaymentsView(building: widget.building);
+              },
             );
           },
         ),
@@ -53,7 +52,6 @@ class _BuildingPaymentsViewState extends State<BuildingPaymentsView> {
     List<Widget> paymentDetailsViews = [];
 
     for (var apartment in widget.building.apartments) {
-      // Filter payments by selectedPaymentMethod if not null
       var filteredPayments = selectedPaymentMethod == null
           ? apartment.payments
           : apartment.payments
@@ -62,46 +60,63 @@ class _BuildingPaymentsViewState extends State<BuildingPaymentsView> {
               .toList();
 
       if (filteredPayments.isNotEmpty) {
-        // Add a header for each apartment
         paymentDetailsViews.add(Text(
           '${apartment.attendantName}',
           style: TextStyle(fontWeight: FontWeight.bold),
         ));
-        // Add the PaymentsDetailView for the filtered payments
-        paymentDetailsViews.add(PaymentsDetailView(payments: filteredPayments));
+        paymentDetailsViews
+            .add(AttendantPaymentsView(payments: filteredPayments));
       }
     }
 
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(
         title: Text('תשלומים של ${widget.building.name}'),
       ),
-      body: ListView(
-        children: paymentDetailsViews,
+      body: SafeArea(
+        child: ListView(
+          padding: EdgeInsets.only(bottom: 10), // Adjust if necessary
+          children: paymentDetailsViews,
+        ),
       ),
       bottomNavigationBar: BottomAppBar(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: <Widget>[
-            IconButton(
-              icon: Icon(Icons.all_inclusive),
-              onPressed: () => setState(() => selectedPaymentMethod = null),
-            ),
-            IconButton(
-              icon: Icon(Icons.credit_card),
-              onPressed: () =>
-                  setState(() => selectedPaymentMethod = "credit card"),
-            ),
-            IconButton(
-              icon: Icon(Icons.money),
-              onPressed: () => setState(() => selectedPaymentMethod = "cash"),
-            ),
-            IconButton(
-              icon: Icon(Icons.account_balance),
-              onPressed: () =>
-                  setState(() => selectedPaymentMethod = "bank transfer"),
-            ),
-          ],
+        child: Padding(
+          padding:
+              EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: <Widget>[
+              IconButton(
+                icon: Icon(Icons.all_inclusive),
+                tooltip: 'הצג הכל',
+                onPressed: () => setState(() => selectedPaymentMethod = null),
+              ),
+              IconButton(
+                icon: Icon(Icons.credit_card),
+                tooltip: 'צ׳ק',
+                onPressed: () => setState(() => selectedPaymentMethod = "צ׳ק"),
+              ),
+              IconButton(
+                icon: Icon(Icons.money),
+                tooltip: 'מזומן',
+                onPressed: () =>
+                    setState(() => selectedPaymentMethod = "מזומן"),
+              ),
+              IconButton(
+                icon: Icon(Icons.account_balance),
+                tooltip: 'העברה בנקאית',
+                onPressed: () =>
+                    setState(() => selectedPaymentMethod = "העברה בנקאית"),
+              ),
+              IconButton(
+                icon: Icon(Icons.account_balance_wallet),
+                tooltip: 'הוראת קבע',
+                onPressed: () =>
+                    setState(() => selectedPaymentMethod = "הוראת קבע"),
+              ),
+            ],
+          ),
         ),
       ),
     );

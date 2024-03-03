@@ -1,20 +1,74 @@
+import 'package:zion_link/services/building_service.dart';
 import '../models/expense.dart';
-import '../utils/file_storage.dart';
+import 'storage_service.dart';
 
 class ExpenseService {
-  Future<List<Expense>> fetchExpenses(String buildingId) async {
-    return await LocalStorage.readExpenses(buildingId);
+  final BuildingService buildingService = BuildingService();
+  Future<List<Expense>> getAllExpensesForBuilding(String buildingId) async {
+    final buildings = await buildingService.getAllBuildings();
+    List<Expense> expenses = [];
+    for (var building in buildings) {
+      if (building.id == buildingId) {
+        var buildingExpenses = building.expenses as List;
+        expenses.addAll(buildingExpenses.map((item) =>
+            item is Map<String, dynamic> ? Expense.fromJson(item) : item));
+      }
+    }
+    return expenses;
   }
 
-  Future<void> addExpense(String buildingId, Expense newExpense) async {
-    await LocalStorage.addExpenseToBuilding(buildingId, newExpense);
+  Future<Expense?> getExpenseById(String buildingId, String expenseId) async {
+    final List<Expense> expenses = await getAllExpensesForBuilding(buildingId);
+    return expenses.firstWhere((expense) => expense.id == expenseId);
   }
 
-  Future<void> updateExpense(Expense updatedExpense) async {
-    await LocalStorage.updateExpense(updatedExpense);
+  Future<void> addExpenseToBuilding(String buildingId, Expense expense) async {
+    final List buildings = await buildingService.getAllBuildings();
+    bool found = false;
+    for (var building in buildings) {
+      if (building.id == buildingId) {
+        final List<Expense> expenses = building.expenses;
+        expenses.add(expense);
+        building.expenses = expenses;
+        found = true;
+        break;
+      }
+    }
+    if (found) {
+      await StorageService.writeBuildings(buildings);
+    } else {
+      print("Building with ID $buildingId not found.");
+    }
+  }
+
+  Future<void> updateExpense(
+      String buildingId, String expenseId, Expense updatedExpense) async {
+    final List buildings = await buildingService.getAllBuildings();
+    for (var building in buildings) {
+      if (building['id'] == buildingId) {
+        final List expenses = building['expenses'];
+        final int index = expenses.indexWhere((e) => e['id'] == expenseId);
+        if (index != -1) {
+          expenses[index] = updatedExpense.toJson();
+          break;
+        }
+      }
+    }
+    await StorageService.writeBuildings(buildings);
   }
 
   Future<void> deleteExpense(String buildingId, String expenseId) async {
-    await LocalStorage.deleteExpense(buildingId, expenseId);
+    final List buildings = await StorageService.getAllBuildings();
+    for (var building in buildings) {
+      if (building['id'] == buildingId) {
+        final List expenses = building['expenses'];
+        final index = expenses.indexWhere((e) => e['id'] == expenseId);
+        if (index != -1) {
+          expenses.removeAt(index);
+          break;
+        }
+      }
+    }
+    await StorageService.writeBuildings(buildings);
   }
 }

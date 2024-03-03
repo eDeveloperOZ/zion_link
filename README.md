@@ -25,9 +25,8 @@ To install Zion Link and set it up for development, follow these detailed steps:
 
 1. **Clone the Repository**: Start by cloning the Zion Link repository to your local machine. Open a terminal and run the following command:
    ```bash
-   git clone https://github.com/your-username/ZionLink.git
+   git clone git@github.com:eDeveloperOZ/zion_link.git
    ```
-   Replace `your-username` with your GitHub username if you have forked the repository, or use the project's original GitHub URL if you have access to clone it directly.
 
 2. **Navigate to the Project Directory**: After cloning, move into the Zion Link project directory by running:
    ```bash

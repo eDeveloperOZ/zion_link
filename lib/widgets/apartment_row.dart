@@ -4,8 +4,8 @@ import 'income_report_dialog.dart';
 
 class ApartmentRow extends StatelessWidget {
   final Apartment apartment;
-  final VoidCallback onTap;
   final VoidCallback onPaymentReported;
+  final VoidCallback onTap;
 
   const ApartmentRow(
       {Key? key,
@@ -26,7 +26,7 @@ class ApartmentRow extends StatelessWidget {
             ),
           ),
           Expanded(
-            child: Text('${apartment.yearlyPaymentAmount.toInt()} תשלום שנתי',
+            child: Text(' תשלום שנתי ${apartment.yearlyPaymentAmount.toInt()}',
                 style: TextStyle(fontSize: 25)),
           ),
           GestureDetector(
@@ -34,7 +34,7 @@ class ApartmentRow extends StatelessWidget {
               showDialog(
                 context: context,
                 builder: (BuildContext context) {
-                  return ReportIncomeDialog(apartmentId: apartment.id);
+                  return IncomeReportDialog(apartmentId: apartment.id);
                 },
               ).then((_) => onPaymentReported());
             },

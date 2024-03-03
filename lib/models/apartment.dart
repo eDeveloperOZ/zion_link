@@ -2,30 +2,32 @@ import 'payment.dart'; // Importing the Payment class
 
 class Apartment {
   final String id;
+  final String buildingId;
   String attendantName;
   double yearlyPaymentAmount;
-  final List<Payment> payments; // Added to hold list of payments
+  List<Payment> payments;
 
   Apartment({
     required this.id,
+    required this.buildingId,
     required this.attendantName,
     required this.yearlyPaymentAmount,
-    required this.payments, // Now required and corrected syntax
+    required this.payments,
   });
 
-  void reportPayment(Payment payment) {
-    payments.add(payment); // Logic to add a payment to the list
-  }
+  // void reportPayment(Payment payment) {
+  //   payments.add(payment);
+  // }
 
-  double getAmountLeft() {
-    double totalPaid = payments.fold(
-        0, (sum, item) => sum + item.amount); // Calculate total paid
-    return yearlyPaymentAmount - totalPaid; // Return how much is left to pay
-  }
+  // double getAmountLeft() {
+  //   double totalPaid = payments.fold(0, (sum, item) => sum + item.amount);
+  //   return yearlyPaymentAmount - totalPaid;
+  // }
 
   Map<String, dynamic> toJson() {
     return {
       'id': id,
+      'buildingId': buildingId,
       'attendantName': attendantName,
       'yearlyPaymentAmount': yearlyPaymentAmount,
       'payments': payments
@@ -37,6 +39,7 @@ class Apartment {
   factory Apartment.fromJson(Map<String, dynamic> json) {
     return Apartment(
       id: json['id'],
+      buildingId: json['buildingId'],
       attendantName: json['attendantName'],
       yearlyPaymentAmount: json['yearlyPaymentAmount'],
       payments: json['payments'] != null

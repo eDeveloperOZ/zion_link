@@ -1,9 +1,9 @@
 import '../models/apartment.dart';
-import '../utils/file_storage.dart';
+import 'storage_service.dart';
 
 class ApartmentService {
-  Future<List<Apartment>> fetchApartments() async {
-    final buildings = await LocalStorage.readBuildings();
+  Future<List<Apartment>> getAllApartmentsForBuilding(String buildingId) async {
+    final buildings = await StorageService.getAllBuildings();
     List<Apartment> apartments = [];
     for (var building in buildings) {
       var buildingApartments = building['apartments'] as List;
@@ -13,18 +13,63 @@ class ApartmentService {
     return apartments;
   }
 
-  Future<void> updateApartment(Apartment updatedApartment) async {
-    await LocalStorage.updateApartment(updatedApartment);
+  Future<Apartment?> getApartmentById(String apartmentId) async {
+    final buildings = await StorageService.getAllBuildings();
+    for (var building in buildings) {
+      var buildingApartments = building['apartments'] as List;
+      final index = buildingApartments
+          .indexWhere((apartment) => apartment['id'] == apartmentId);
+      if (index != -1) {
+        return Apartment.fromJson(buildingApartments[index]);
+      }
+    }
+    return null;
   }
 
   Future<void> addApartment(Apartment newApartment) async {
-    // This method would require knowing the building to which the apartment belongs.
-    // Assuming an updated method signature or an updated approach to find the correct building.
-    // For simplicity, this example does not implement adding an apartment without specifying its building.
+    final buildings = await StorageService.getAllBuildings();
+    bool found = false;
+    for (var building in buildings) {
+      if (building['id'] == newApartment.buildingId) {
+        final List apartments = building['apartments'] ?? [];
+        apartments.add(newApartment.toJson());
+        building['apartments'] = apartments;
+        found = true;
+        break;
+      }
+    }
+    if (!found) {
+      print("Building with ID ${newApartment.buildingId} not found.");
+    } else {
+      await StorageService.writeBuildings(buildings);
+    }
+  }
+
+  Future<void> updateApartment(Apartment updatedApartment) async {
+    final buildings = await StorageService.getAllBuildings();
+    for (var building in buildings) {
+      final List apartments = building['apartments'];
+      final int index = apartments
+          .indexWhere((apartment) => apartment['id'] == updatedApartment.id);
+      if (index != -1) {
+        apartments[index] = updatedApartment.toJson();
+        await StorageService.writeBuildings(buildings);
+        break;
+      }
+    }
   }
 
   Future<void> deleteApartment(String apartmentId) async {
-    // Similar to addApartment, deleting an apartment would require knowing its building or a more complex search mechanism.
-    // This example does not implement the deletion logic without specifying its building.
+    final buildings = await StorageService.getAllBuildings();
+    for (var building in buildings) {
+      final List apartments = building['apartments'];
+      final index =
+          apartments.indexWhere((apartment) => apartment['id'] == apartmentId);
+      if (index != -1) {
+        apartments.removeAt(index);
+        await StorageService.writeBuildings(buildings);
+        break;
+      }
+    }
   }
 }
