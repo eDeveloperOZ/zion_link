@@ -23,6 +23,7 @@ class ExpenseReportDialog extends StatefulWidget {
 
 class _ExpenseReportDialogState extends State<ExpenseReportDialog> {
   List<Expense> expenses = [];
+  String? selectedCategory; // Moved to a higher scope
 
   @override
   void initState() {
@@ -49,8 +50,12 @@ class _ExpenseReportDialogState extends State<ExpenseReportDialog> {
           onPressed: () async {
             await widget
                 .onDialogOpened(); // Call the onDialogOpened callback here
-            await showExpenseReportDialog(
-                context, expenses, widget.buildingId, _loadExpenses);
+            await showExpenseReportDialog(context, expenses, widget.buildingId,
+                _loadExpenses, selectedCategory, (String? newCategory) {
+              setState(() {
+                selectedCategory = newCategory;
+              });
+            });
             // After the dialog is closed, you might want to refresh the expenses again
             // to ensure any changes made in the dialog are reflected.
             await _loadExpenses();
@@ -65,13 +70,13 @@ class _ExpenseReportDialogState extends State<ExpenseReportDialog> {
 class ExpenseSummary extends StatelessWidget {
   final List<Expense> expenses;
   final String buildingId;
-  final Future<void> Function() onExpensesUpdated; // Add this line
+  final Future<void> Function() onExpensesUpdated;
 
   const ExpenseSummary({
     Key? key,
     required this.expenses,
     required this.buildingId,
-    required this.onExpensesUpdated, // Modify constructor
+    required this.onExpensesUpdated,
   }) : super(key: key);
 
   @override
@@ -105,6 +110,7 @@ Widget _buildCategoryDropdown({
   required String? selectedCategory,
   required StateSetter setState,
   required BuildContext context,
+  required Function(String?) onSelectCategory,
 }) {
   return DropdownButtonFormField<String>(
     value: selectedCategory,
@@ -130,12 +136,11 @@ Widget _buildCategoryDropdown({
               categories.add(value);
               selectedCategory = value;
             });
+            onSelectCategory(value); // Use the callback to update
           }
         });
       } else {
-        setState(() {
-          selectedCategory = newValue;
-        });
+        onSelectCategory(newValue); // Use the callback to update
       }
     },
     items: categories.map<DropdownMenuItem<String>>((String value) {
@@ -171,12 +176,17 @@ Future<void> showExpenseReportDialog(
     BuildContext context,
     List<Expense> expenses,
     String buildingId,
-    Future<void> Function() onExpensesUpdated) async {
+    Future<void> Function() onExpensesUpdated,
+    String? selectedCategory, // Accept selectedCategory as a parameter
+    Function(String?)
+        onSelectCategory // Callback to update selectedCategory in the parent state
+    ) async {
   String currentBuildingId = buildingId;
   List<String> categories = [
     'חשמלאי',
     'מים',
     'ארנונה',
+    'תחזוקת מעליות',
     'גינון',
     'אינסטלטור',
     'אחר...',
@@ -184,7 +194,6 @@ Future<void> showExpenseReportDialog(
   await showDialog<void>(
     context: context,
     builder: (BuildContext context) {
-      String? selectedCategory;
       final TextEditingController amountController = TextEditingController();
       final TextEditingController noteController = TextEditingController();
       String? filePath; // Define filePath here
@@ -207,6 +216,7 @@ Future<void> showExpenseReportDialog(
                   selectedCategory: selectedCategory,
                   setState: setState,
                   context: context,
+                  onSelectCategory: onSelectCategory,
                 ),
                 TextFormField(
                   controller: amountController,

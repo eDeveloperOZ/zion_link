@@ -1,6 +1,9 @@
 name: Build Flutter Windows App
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - main
 
 jobs:
   build:
@@ -16,25 +19,32 @@ jobs:
       with:
         channel: 'beta'
 
+    - name: Verify flutter 
+      run: flutter doctor -v 
+
     - name: Install dependencies
       run: flutter pub get
 
     - name: Build Windows
-      run: flutter build windows --release
+      run: flutter build windows --release -v
       env:
         FLUTTER_ROOT: C:\hostedtoolcache\windows\flutter\beta-3.20.0-1.2.pre-x64
         PUB_CACHE: C:\hostedtoolcache\windows\flutter\beta-3.20.0-1.2.pre-x64/.pub-cache
 
-    - name: Echo Build Completion
-      run: echo "Build completed successfully"
-
-    - name: List Build Output
-      run: dir build\windows\runner\
+    - name: Check Build Directory
+      run: |
+        if (Test-Path build\windows\runner\) {
+          echo "Build directory exists"
+          dir build\windows\runner\
+        } else {
+          echo "Build directory does not exist"
+        }
       shell: powershell
+
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v3
       with:
         name: windows-build
-        path: build/windows/runner/**
+        path: build/windows/x64/runner/Release/*
         if-no-files-found: warn

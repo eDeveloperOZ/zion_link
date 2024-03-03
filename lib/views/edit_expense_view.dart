@@ -25,6 +25,7 @@ class _EditExpenseViewState extends State<EditExpenseView> {
     'חשמלאי',
     'מים',
     'ארנונה',
+    'תחזוקת מעליות',
     'גינון',
     'אינסטלטור',
     'אחר...'
