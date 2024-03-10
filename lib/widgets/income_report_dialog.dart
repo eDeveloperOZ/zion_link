@@ -69,7 +69,8 @@ class _ReportIncomeDialogState extends State<IncomeReportDialog> {
           );
         },
       );
-    } else if (_selectedMethod == 'העברה בנקאית') {
+    } else if (_selectedMethod == 'העברה בנקאית' ||
+        _selectedMethod == 'הוראת קבע') {
       showDialog(
         context: context,
         builder: (BuildContext context) {
@@ -87,6 +88,7 @@ class _ReportIncomeDialogState extends State<IncomeReportDialog> {
               TextButton(
                 child: Text('לא'),
                 onPressed: () {
+                  _numberOfpayments = 1;
                   Navigator.of(context).pop();
                 },
               ),

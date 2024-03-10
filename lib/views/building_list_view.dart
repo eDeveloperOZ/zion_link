@@ -85,7 +85,7 @@ class _BuildingDetailViewState extends State<BuildingDetailView> {
                       builder: (context, snapshot) {
                         if (snapshot.hasData) {
                           return Text(
-                            '\$${snapshot.data!.toStringAsFixed(2)}',
+                            '₪${snapshot.data!.toStringAsFixed(2)}',
                             style: TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold),
@@ -137,9 +137,59 @@ class _BuildingDetailViewState extends State<BuildingDetailView> {
   }
 
   Future<void> _editBalance(BuildContext context) async {
-    // Implement the logic to edit the balance
-    // For simplicity, let's assume you use a dialog to input the new balance
-    // and then update the building's balance using _buildingService.updateBuilding(_building);
+    // Show dialog to input new balance
+    final TextEditingController _controller = TextEditingController();
+    final newBalance = await showDialog<double>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('עדכן יתרת בניין'),
+          content: TextField(
+            controller: _controller,
+            keyboardType: TextInputType.numberWithOptions(decimal: true),
+            decoration: InputDecoration(
+                hintText:
+                    "יתרת בניין נוכחית: \₪${_building.balance.toStringAsFixed(2)}"),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('עדכן יתרה'),
+              onPressed: () {
+                final double? enteredBalance =
+                    double.tryParse(_controller.text);
+                if (enteredBalance != null) {
+                  Navigator.of(context).pop(enteredBalance);
+                }
+              },
+            ),
+            TextButton(
+              child: Text('ביטול'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+
+    // If newBalance is not null, update the building's balance
+    if (newBalance != null) {
+      setState(() {
+        _building.balance = newBalance;
+      });
+      await _buildingService.updateBuilding(_building);
+      // Refresh the UI to reflect the updated balance
+      _loadBuildingData();
+    }
+  }
+
+  Future<void> _loadBuildingData() async {
+    Building updatedBuilding =
+        await _buildingService.getBuildingById(_building.id);
+    setState(() {
+      _building = updatedBuilding;
+    });
   }
 
   Widget _buildApartmentsListView(BuildContext context) {
@@ -179,11 +229,15 @@ class _BuildingDetailViewState extends State<BuildingDetailView> {
           appBar: AppBar(
             leading: IconButton(
               icon: Icon(Icons.arrow_back),
-              onPressed: () => Navigator.pop(context),
+              onPressed: () {
+                Navigator.pop(context);
+                setState(() {});
+              },
             ),
             title: Text('${apartment.attendantName} - דירה'),
           ),
-          body: AttendantPaymentsView(payments: apartment.payments),
+          body: AttendantPaymentsView(
+              building: _building, payments: apartment.payments),
         ),
       ),
     );
@@ -229,7 +283,7 @@ class _BuildingDetailViewState extends State<BuildingDetailView> {
               setState(() {});
             },
           ),
-          ReportGeneratorButton(),
+          ReportGeneratorButton(building: _building),
           DeleteBuildingButton(
             buildingID: _building.id,
             onBuildingDeleted: () async {

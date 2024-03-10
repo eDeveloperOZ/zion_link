@@ -63,8 +63,10 @@ Here is a table to keep track of tasks for the Zion Link project and their compl
 | Task Description | Status       |
 |------------------|--------------|
 | Add a filter option for the attendent paymetns  | ✅         |
+| create a service to verify that the user's data structure is correct and updated to current /model in case of model modifications  | ❌ |
+| add an option to undo a confirmation of a payment  | ❌ |
 | Add a password to delete a building  | ✅ |
-| Add a report generator button  | ❌  |
+| Add a report generator button  | ✅ |
 | Add an option for an apartment for have a debt from the past  | ❌ |
 
 

@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import '../models/payment.dart';
+import '../models/building.dart';
 import '../services/payment_service.dart';
 import '../widgets/delete_button.dart';
 import '../widgets/success_message_widget.dart';
+import 'receipt_view.dart';
 
 class AttendantPaymentsView extends StatefulWidget {
+  final Building building;
   final List<Payment> payments;
 
-  AttendantPaymentsView({required this.payments});
+  AttendantPaymentsView({required this.building, required this.payments});
 
   @override
   _AttendantPaymentsViewState createState() => _AttendantPaymentsViewState();
@@ -77,6 +80,23 @@ class _AttendantPaymentsViewState extends State<AttendantPaymentsView> {
                         SnackBar(
                             content: SuccessMessageWidget(
                                 message: 'התשלום נמחק בהצלחה')),
+                      );
+                    },
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.receipt),
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return ReceiptView(
+                            payment: payment,
+                            attendantName: widget.building.apartments
+                                .firstWhere((a) => a.id == payment.apartmentId)
+                                .attendantName,
+                            buildingAddress: widget.building.address,
+                          );
+                        },
                       );
                     },
                   ),

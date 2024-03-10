@@ -17,4 +17,22 @@ class FileUploadService {
     final File newFile = File('$path/$fileName');
     return file.copy(newFile.path);
   }
+
+  /// Saves the given [content] to a file named [fileName] in the Downloads directory.
+  ///
+  /// This method creates a file with the specified [fileName] and writes the [content]
+  /// to it. The file is saved in the Downloads directory of the machine.
+  ///
+  /// Returns a [Future<File>] that completes with the file containing the content.
+  static Future<File> saveContentToFile(String fileName, String content) async {
+    final directory =
+        await getDownloadsDirectory(); // Get the Downloads directory
+    if (directory == null) {
+      throw FileSystemException("Downloads directory not found.");
+    }
+    final File file = File(
+        '${directory.path}/$fileName'); // Create a file in the Downloads directory
+    return file
+        .writeAsString(content); // Write the content to the file and return it
+  }
 }

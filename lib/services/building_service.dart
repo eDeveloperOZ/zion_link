@@ -45,7 +45,9 @@ class BuildingService {
     double totalBalance = building.balance;
     for (var apartment in building.apartments) {
       for (var payment in apartment.payments) {
-        totalBalance += payment.amount;
+        if (payment.isConfirmed) {
+          totalBalance += payment.amount;
+        }
       }
     }
     return totalBalance;

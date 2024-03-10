@@ -64,8 +64,8 @@ class _BuildingPaymentsViewState extends State<BuildingPaymentsView> {
           '${apartment.attendantName}',
           style: TextStyle(fontWeight: FontWeight.bold),
         ));
-        paymentDetailsViews
-            .add(AttendantPaymentsView(payments: filteredPayments));
+        paymentDetailsViews.add(AttendantPaymentsView(
+            building: widget.building, payments: filteredPayments));
       }
     }
 

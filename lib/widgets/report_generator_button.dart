@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'report_generator_dialog.dart';
+import '../models/building.dart';
 
 class ReportGeneratorButton extends StatelessWidget {
-  ReportGeneratorButton({Key? key}) : super(key: key);
+  final Building building;
+  ReportGeneratorButton({Key? key, required this.building}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +17,7 @@ class ReportGeneratorButton extends StatelessWidget {
             showDialog(
               context: context,
               builder: (BuildContext context) {
-                return ReportGeneratorDialog();
+                return ReportGeneratorDialog(building: building);
               },
             );
           },

@@ -28,8 +28,12 @@ class PaymentService {
     final apartmentService = ApartmentService();
     final storageService = StorageService();
     final apartment = await apartmentService.getApartmentById(apartmentId);
-    apartment?.payments.add(payment);
-    storageService.addPaymentToBuilding(apartment!.buildingId, payment);
+    if (apartment != null) {
+      apartment.payments.add(payment);
+      storageService.addPaymentToBuilding(apartment.buildingId, payment);
+    } else {
+      print("Apartment with ID $apartmentId not found.");
+    }
   }
 
   Future<void> updatePayment(String apartmentId, Payment updatedPayment) async {
