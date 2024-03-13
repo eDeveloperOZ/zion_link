@@ -186,7 +186,8 @@ class _ReportIncomeDialogState extends State<IncomeReportDialog> {
           onPressed: () async {
             final DateTime? picked = await showDatePicker(
               context: context,
-              initialDate: DateTime.now(),
+              initialDate: _selectedDate ??
+                  DateTime.now(), // Use selected date if available
               firstDate: DateTime(2000),
               lastDate: DateTime(2025),
             );
@@ -196,7 +197,12 @@ class _ReportIncomeDialogState extends State<IncomeReportDialog> {
               });
             }
           },
-          child: Center(child: Text('בחר תאריך')),
+          child: Center(
+            // Display the selected date if available, otherwise show default text
+            child: Text(_selectedDate != null
+                ? "${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}"
+                : 'בחר תאריך'),
+          ),
         ),
       ],
     );

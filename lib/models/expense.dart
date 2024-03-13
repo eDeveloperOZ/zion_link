@@ -25,7 +25,7 @@ class Expense {
       amount: json['amount'].toDouble(),
       date: DateTime.parse(json['date']),
       categoryId: json['categoryId'],
-      filePath: json['filePath'], // Parse filePath from JSON
+      filePath: json['filePath'],
     );
   }
 
