@@ -1,5 +1,6 @@
 import '../models/apartment.dart';
 import 'storage_service.dart';
+import '../utils/logger.dart'; // Ensure this import is added at the top
 
 class ApartmentService {
   Future<List<Apartment>> getAllApartmentsForBuilding(String buildingId) async {
@@ -39,7 +40,7 @@ class ApartmentService {
       }
     }
     if (!found) {
-      print("Building with ID ${newApartment.buildingId} not found.");
+      Logger.error("Building with ID ${newApartment.buildingId} not found.");
     } else {
       await StorageService.writeBuildings(buildings);
     }

@@ -1,5 +1,6 @@
 import '../models/building.dart';
 import 'storage_service.dart';
+import '../utils/logger.dart'; // Added import for Logger
 
 class BuildingService {
   Future<List<Building>> getAllBuildings() async {
@@ -16,7 +17,10 @@ class BuildingService {
         return Building.fromJson(building);
       }
     }
-    throw Exception('Building not found');
+    Logger.error(
+        'Building not found'); // Changed from throw Exception to Logger.error
+    throw Exception(
+        'Building not found'); // Keeping the throw statement as the Logger does not handle exceptions
   }
 
   Future<void> addBuilding(Building newBuilding) async {

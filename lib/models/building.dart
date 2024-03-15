@@ -1,8 +1,10 @@
 import 'apartment.dart';
+import 'user.dart';
 import 'expense.dart';
 
 class Building {
   final String id;
+  final userId;
   String name;
   double balance;
   final String address;
@@ -11,6 +13,7 @@ class Building {
 
   Building(
       {required this.id,
+      required this.userId,
       required this.name,
       this.balance = 0,
       required this.address,
@@ -20,6 +23,7 @@ class Building {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
+      'userId': userId,
       'name': name,
       'balance': balance,
       'address': address,
@@ -30,7 +34,8 @@ class Building {
 
   factory Building.fromJson(Map<String, dynamic> json) {
     return Building(
-        id: json['id'], // Deserialize id field
+        id: json['id'],
+        userId: json['userId'],
         name: json['name'],
         balance: json['balance']?.toDouble(),
         address: json['address'],

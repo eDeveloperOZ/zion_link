@@ -1,6 +1,7 @@
 import 'package:zion_link/services/building_service.dart';
 import '../models/expense.dart';
 import 'storage_service.dart';
+import 'package:zion_link/utils/logger.dart';
 
 class ExpenseService {
   final BuildingService buildingService = BuildingService();
@@ -34,10 +35,10 @@ class ExpenseService {
         break;
       }
     }
-    if (found) {
-      await StorageService.writeBuildings(buildings);
+    if (!found) {
+      Logger.error("Building with ID $buildingId not found.");
     } else {
-      print("Building with ID $buildingId not found.");
+      await StorageService.writeBuildings(buildings);
     }
   }
 

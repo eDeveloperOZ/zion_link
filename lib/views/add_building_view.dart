@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 import '../models/building.dart';
-import '../services/storage_service.dart';
+import '../services/building_service.dart';
 
 class AddBuildingView extends StatelessWidget {
   final Function addBuildingCallback;
+  final String userId;
 
-  AddBuildingView({required this.addBuildingCallback});
+  AddBuildingView({required this.addBuildingCallback, required this.userId});
 
   final TextEditingController nameController = TextEditingController();
   final TextEditingController addressController = TextEditingController();
+  final BuildingService buildingService = BuildingService();
 
   @override
   Widget build(BuildContext context) {
@@ -30,6 +32,7 @@ class AddBuildingView extends StatelessWidget {
             onPressed: () async {
               final newBuilding = Building(
                 id: DateTime.now().millisecondsSinceEpoch.toString(),
+                userId: userId,
                 name: nameController.text,
                 address: addressController.text,
                 apartments: [],
@@ -37,10 +40,8 @@ class AddBuildingView extends StatelessWidget {
               );
               addBuildingCallback(newBuilding);
 
-              // Read existing buildings, add the new one, then save
-              List existingBuildings = await StorageService.getAllBuildings();
-              existingBuildings.add(newBuilding.toJson());
-              await StorageService.writeBuildings(existingBuildings);
+              // Use BuildingService to add the new building
+              await buildingService.updateBuilding(newBuilding);
 
               Navigator.pop(context, true);
             },

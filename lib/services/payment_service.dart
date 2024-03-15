@@ -1,6 +1,7 @@
 import '../models/payment.dart';
 import 'apartment_service.dart';
 import 'storage_service.dart';
+import '../utils/logger.dart'; // Import Logger class
 
 class PaymentService {
   StorageService _storageService = StorageService();
@@ -32,7 +33,8 @@ class PaymentService {
       apartment.payments.add(payment);
       storageService.addPaymentToBuilding(apartment.buildingId, payment);
     } else {
-      print("Apartment with ID $apartmentId not found.");
+      Logger.error(
+          "Apartment with ID $apartmentId not found."); // Use Logger.error
     }
   }
 
@@ -48,11 +50,12 @@ class PaymentService {
         // Now, use StorageService to persist the changes
         await _storageService.updatePayment(updatedPayment);
       } else {
-        print(
-            "Payment with ID ${updatedPayment.id} not found in apartment $apartmentId.");
+        Logger.warning(
+            "Payment with ID ${updatedPayment.id} not found in apartment $apartmentId."); // Use Logger.warning
       }
     } else {
-      print("Apartment with ID $apartmentId not found.");
+      Logger.error(
+          "Apartment with ID $apartmentId not found."); // Use Logger.error
     }
   }
 
@@ -63,7 +66,8 @@ class PaymentService {
     if (apartment != null) {
       await storageService.deletePayment(apartment.buildingId, paymentId);
     } else {
-      print("Apartment with ID $apartmentId not found.");
+      Logger.error(
+          "Apartment with ID $apartmentId not found."); // Use Logger.error
     }
   }
 }

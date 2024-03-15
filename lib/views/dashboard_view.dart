@@ -8,8 +8,9 @@ import 'setting_view.dart'; // Import the SettingView widget
 
 class DashboardView extends StatefulWidget {
   final List<Building> buildings;
+  final String userId; // Added to accept the user ID as a parameter
 
-  DashboardView({required this.buildings});
+  DashboardView({required this.buildings, required this.userId});
 
   @override
   _DashboardViewState createState() => _DashboardViewState();
@@ -142,8 +143,11 @@ class _DashboardViewState extends State<DashboardView> {
                   MaterialPageRoute(
                     builder: (context) => AddBuildingView(
                         addBuildingCallback: (newBuilding) async {
-                      await addBuilding(newBuilding); // Use addBuilding method
-                    }),
+                          await addBuilding(
+                              newBuilding); // Use addBuilding method
+                        },
+                        userId: widget
+                            .userId), // Pass the userId to AddBuildingView
                   ),
                 ).then((value) {
                   if (value == true) {
