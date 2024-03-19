@@ -36,6 +36,8 @@ dependencies:
   file_picker: ^6.1.1
   universal_io: ^2.0.4
   url_launcher: ^6.0.12
+  mockito: ^5.4.4
+  provider: ^6.1.2
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.

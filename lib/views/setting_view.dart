@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../services/storage_service.dart';
+import 'package:zion_link/core/services/storage_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class SettingView extends StatelessWidget {

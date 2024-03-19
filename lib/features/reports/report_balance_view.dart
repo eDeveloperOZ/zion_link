@@ -1,0 +1,22 @@
+import 'package:flutter/material.dart';
+import 'package:zion_link/core/models/building.dart'; // Import the Building model
+
+class ReportBalanceView extends StatelessWidget {
+  final Building building; // Add a final Building field
+
+  const ReportBalanceView({Key? key, required this.building})
+      : super(key: key); // Update constructor to accept a Building object
+
+  @override
+  Widget build(BuildContext context) {
+    // Use the building object as needed, for example, to display building information
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(building.name), // Example usage of the building object
+      ),
+      body: Container(
+          // Your widget code that uses the building object
+          ),
+    );
+  }
+}

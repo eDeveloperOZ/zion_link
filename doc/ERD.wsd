@@ -1,38 +1,78 @@
-@startuml Models_ERD
+@startuml
+!theme plain
 
-title Models ERD
-
-class Building {
-    id: int
-    name: string
-    address: string
-    apartments: Apartment[]
-    expenses: Expense[]
-}
-class Apartment {
-    id: int
-    attendantName: string
-    yearlyPaymentAmount: double
-    payments: Payment[]
-}
-class Expense {
-    id: String
-    title: String
-    amount: double
-    date: DateTime
-    categoryId: String
-    filePath: String?
-}
-class Payment {
-    id: string
-    amount: float
-    date: date
-    paymentMethod: string
-    isConfirmed: boolean
+entity "User" as User {
+  +id : String {PK}
+  firstName : String
+  lastName : String {optional}
+  email : String
+  phoneNumber : String {optional}
+  role : UserType
+  profession : String {optional}
+  profilePictureUrl : String {optional}
+  dateOfBirth : DateTime {optional}
+  createdAt : DateTime {default: now}
+  updatedOn : DateTime {optional}
 }
 
-Building->Apartment: "1" contains "many"
-Apartment->Payment: "1" contains "many"
-Building->Expense: "1" contains "many"
+entity "Building" as Building {
+  +id : String {PK}
+  name : String
+  balance : double {default: 0}
+  address : String
+}
+
+entity "UserBuildingAssociation" as UserBuildingAssociation {
+  +userId : String {PK, FK}
+  +buildingId : String {PK, FK}
+  role : String
+}
+
+entity "Apartment" as Apartment {
+  +id : String {PK}
+  buildingId : String {FK}
+  number : String
+  ownerName : String
+  attendantName : String {optional}
+  yearlyPaymentAmount : double
+}
+
+entity "Expense" as Expense {
+  +id : String {PK}
+  buildingId : String {FK}
+  title : String
+  amount : double
+  date : DateTime
+  categoryId : String
+  filePath : String? {optional}
+}
+
+entity "Payment" as Payment {
+  +id : String {PK}
+  apartmentId : String {FK}
+  madeByName : String
+  amount : double
+  dateMade : DateTime
+  periodCoverageStart : String
+  periodCoverageEnd : String
+  paymentMethod : String
+  reason : String {optional}
+  isConfirmed : bool {default: false}
+}
+
+enum UserType {
+  ADMIN
+  OWNER
+  TENANT
+  ROUTINESERVICEPROVIDER
+  ONCALLSERVICEPROVIDER
+}
+
+UserType --> User : role
+User "1" --> "*" UserBuildingAssociation : users
+Building "1" --> "*" UserBuildingAssociation : buildings
+Building "1" --> "*" Apartment : apartments
+Apartment "1" --> "*" Payment : payments
+Building "1" --> "*" Expense : expenses
 
 @enduml

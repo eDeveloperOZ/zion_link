@@ -1,27 +1,26 @@
 import 'package:flutter/material.dart';
-import 'package:zion_link/views/all_payments_view.dart';
-import '../models/building.dart';
-import '../models/apartment.dart';
-import '../services/building_service.dart';
-import '../services/apartment_service.dart';
-import 'attendant_payments_view.dart';
-import '../widgets/add_apartment_dialog.dart';
-import '../widgets/apartment_row.dart';
-import '../widgets/edit_building_details_dialog.dart';
-import '../widgets/delete_building_button.dart';
-import '../widgets/expense_report_dialog.dart';
-import '../widgets/edit_apartment_dialog.dart';
-import '../widgets/report_generator_button.dart';
+import 'package:zion_link/features/payments/all_payments_view.dart';
+import 'package:zion_link/core/models/building.dart';
+import 'package:zion_link/core/models/apartment.dart';
+import 'package:zion_link/core/models/expense.dart';
+import 'package:zion_link/core/services/crud/building_service.dart';
+import 'package:zion_link/core/services/crud/apartment_service.dart';
+import 'package:zion_link/core/services/crud/expense_service.dart';
+import 'package:zion_link/features/payments/attendant_payments_view.dart';
+import 'package:zion_link/features/apartments/add_apartment_dialog.dart';
+import 'package:zion_link/shared/widgets/apartment_row.dart';
+import 'package:zion_link/features/buildings/edit_building_details_dialog.dart';
+import 'package:zion_link/features/buildings/delete_building_button.dart';
+import 'package:zion_link/features/expenses/expense_report_dialog.dart';
+import 'package:zion_link/shared/widgets/edit_apartment_dialog.dart';
+import 'package:zion_link/features/reports/report_generator_button.dart';
 
 // StatefulWidget for displaying detailed view of a building
 class BuildingDetailView extends StatefulWidget {
-  final Building building; // Make building final
-  final Function onBuildingDeleted; // Callback when a building is deleted
-  final Function(Building)
-      onBuildingUpdated; // Callback when a building is updated
-  final Function
-      onExpenseAdded; // Add this callback for when an expense is added
-
+  final Building building;
+  final Function onBuildingDeleted;
+  final Function(Building) onBuildingUpdated;
+  final Function onExpenseAdded;
   // Constructor requiring all the properties to be initialized
   BuildingDetailView({
     required this.building,
@@ -38,6 +37,7 @@ class _BuildingDetailViewState extends State<BuildingDetailView> {
   late Building _building;
   final BuildingService _buildingService = BuildingService();
   final ApartmentService _apartmentService = ApartmentService();
+  final ExpenseService _expenseService = ExpenseService();
 
   @override
   void initState() {
@@ -45,7 +45,15 @@ class _BuildingDetailViewState extends State<BuildingDetailView> {
     _building = widget.building;
   }
 
-  void _onPaymentReported() async {
+  void _onPaymentReported(Apartment updatedApartment) async {
+    ApartmentService apartmentService = ApartmentService();
+
+    setState(() {
+      apartmentService.updateApartment(updatedApartment);
+    });
+  }
+
+  void _onExpenseReported(Expense addedExpense) async {
     Building updatedBuilding =
         await BuildingService().getBuildingById(_building.id);
     setState(() {
@@ -53,15 +61,47 @@ class _BuildingDetailViewState extends State<BuildingDetailView> {
     });
   }
 
+  /// Calculates the total balance for a given building.
+  ///
+  /// This function asynchronously fetches the total balance by summing up all the expenses and payments
+  /// associated with the building. It ensures compatibility across iOS, Android, PC, macOS, and web platforms.
+  ///
+  /// Returns a [Future<double>] representing the total balance.
+  Future<double> _calculateTotalBalance(String buildingId) async {
+    double totalExpenses = 0.0;
+    double totalPayments = 0.0;
+
+    // Fetch expenses for the building
+    List<Expense> expenses =
+        await _expenseService.getAllExpensesForBuilding(buildingId);
+    for (var expense in expenses) {
+      totalExpenses += expense.amount;
+    }
+
+    // Fetch apartments to calculate payments
+    List<Apartment> apartments =
+        await _apartmentService.getAllApartmentsForBuilding(buildingId);
+    for (var apartment in apartments) {
+      for (var payment in apartment.payments) {
+        if (payment.isConfirmed) {
+          totalPayments += payment.amount;
+        }
+      }
+    }
+
+    // Calculate total balance
+    double totalBalance = totalPayments - totalExpenses;
+    return totalBalance;
+  }
+
   AppBar _buildAppBar() {
     return AppBar(
       title: Row(
-        mainAxisAlignment:
-            MainAxisAlignment.spaceBetween, // Align title and balance
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
           Expanded(
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.center, // Center the content
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
                   _building.name, // Building name
@@ -80,8 +120,7 @@ class _BuildingDetailViewState extends State<BuildingDetailView> {
                           20), // Rounded corners for the balance container
                     ),
                     child: FutureBuilder<double>(
-                      future:
-                          _buildingService.calculateTotalBalance(_building.id),
+                      future: _calculateTotalBalance(_building.id),
                       builder: (context, snapshot) {
                         if (snapshot.hasData) {
                           return Text(
@@ -108,7 +147,7 @@ class _BuildingDetailViewState extends State<BuildingDetailView> {
 
   Widget _buildBalanceWidget(BuildContext context) {
     return FutureBuilder<double>(
-      future: _buildingService.calculateTotalBalance(_building.id),
+      future: _calculateTotalBalance(_building.id),
       builder: (context, snapshot) {
         if (snapshot.hasData) {
           return GestureDetector(
@@ -192,12 +231,22 @@ class _BuildingDetailViewState extends State<BuildingDetailView> {
     });
   }
 
-  Widget _buildApartmentsListView(BuildContext context) {
-    // Check if there are no apartments to display a simple message
-    if (_building.apartments.isEmpty) {
+  Future<Widget> _buildApartmentsListView(BuildContext context) async {
+    List<Apartment> apartments =
+        await _apartmentService.getAllApartmentsForBuilding(_building.id);
+    if (apartments.isEmpty) {
       return Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Text('אין דירות להצגה'),
+        child: Center(
+          child: Container(
+            padding: EdgeInsets.all(16.0),
+            decoration: BoxDecoration(
+              color: Colors.grey[200],
+              borderRadius: BorderRadius.circular(8.0),
+            ),
+            child: Text('אין דירות להצגה'),
+          ),
+        ),
       );
     }
 
@@ -206,14 +255,21 @@ class _BuildingDetailViewState extends State<BuildingDetailView> {
       shrinkWrap: true,
       physics:
           NeverScrollableScrollPhysics(), // Prevents the ListView from scrolling
-      itemCount: _building.apartments.length,
+      itemCount: apartments.length,
       itemBuilder: (context, index) {
-        final apartment = _building.apartments[index];
+        final apartment = apartments[index];
         // Use ApartmentRow widget for each apartment
         return ApartmentRow(
           apartment: apartment,
           onPaymentReported: _onPaymentReported,
           onTap: () => _navigateToPaymentDetailView(context, apartment),
+          onApartmentUpdated: (updatedApartment) {
+            // Update the apartment in the building's list
+            setState(() {
+              _apartmentService.updateApartment(updatedApartment);
+              apartments[index] = updatedApartment;
+            });
+          },
         );
       },
     );
@@ -242,11 +298,13 @@ class _BuildingDetailViewState extends State<BuildingDetailView> {
       ),
     );
     if (result == true) {
-      _onPaymentReported();
+      _onPaymentReported(apartment);
     }
   }
 
-  Widget _buildBottomNavigationBar() {
+  Future<Widget> _buildBottomNavigationBar() async {
+    List<Apartment> apartments =
+        await _apartmentService.getAllApartmentsForBuilding(_building.id);
     return BottomAppBar(
       height: 90,
       child: Row(
@@ -263,8 +321,8 @@ class _BuildingDetailViewState extends State<BuildingDetailView> {
           ),
           ExpenseReportDialog(
             buildingId: _building.id,
-            onExpenseAdded: () {
-              _onPaymentReported();
+            onExpenseAdded: (Expense addedExpense) {
+              _onExpenseReported(addedExpense);
             },
           ),
           AllPaymentsView(building: _building),
@@ -272,13 +330,13 @@ class _BuildingDetailViewState extends State<BuildingDetailView> {
               buildingId: _building.id,
               onAdd: (Apartment newApartment) async {
                 await _apartmentService.addApartment(newApartment);
-                _building.apartments.add(newApartment);
+                apartments.add(newApartment);
                 setState(() {});
               }),
           EditApartmentDialog(
-            apartments: _building.apartments,
+            apartments: apartments,
             onApartmentsUpdated: (List<Apartment> updatedApartments) async {
-              _building.apartments = updatedApartments;
+              apartments = updatedApartments;
               await _buildingService.updateBuilding(_building);
               setState(() {});
             },
@@ -296,11 +354,11 @@ class _BuildingDetailViewState extends State<BuildingDetailView> {
     );
   }
 
-  Widget _buildBody(BuildContext context) {
+  Future<Widget> _buildBody(BuildContext context) async {
     return SingleChildScrollView(
       child: Column(
         children: [
-          _buildApartmentsListView(context),
+          await _buildApartmentsListView(context),
         ],
       ),
     );
@@ -311,8 +369,30 @@ class _BuildingDetailViewState extends State<BuildingDetailView> {
     // Building the UI for the building detail view
     return Scaffold(
       appBar: _buildAppBar(),
-      body: _buildBody(context),
-      bottomNavigationBar: _buildBottomNavigationBar(),
+      body: FutureBuilder<Widget>(
+        future: _buildBody(context),
+        builder: (BuildContext context, AsyncSnapshot<Widget> snapshot) {
+          if (snapshot.connectionState == ConnectionState.done) {
+            return snapshot.data ??
+                Container(); // Return the built widget or an empty container if null
+          } else {
+            return Center(
+                child:
+                    CircularProgressIndicator()); // Show a loading spinner while waiting
+          }
+        },
+      ),
+      bottomNavigationBar: FutureBuilder<Widget>(
+        future: _buildBottomNavigationBar(),
+        builder: (BuildContext context, AsyncSnapshot<Widget> snapshot) {
+          if (snapshot.connectionState == ConnectionState.done) {
+            return snapshot.data ??
+                Container(); // Return the built widget or an empty container if null
+          } else {
+            return Container(); // Optionally, return an empty container or a placeholder widget
+          }
+        },
+      ),
     );
   }
 }
