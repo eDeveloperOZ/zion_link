@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'views/dashboard_view.dart';
+import 'views/dashboard_screen.dart';
 
 class App extends StatelessWidget {
   @override
@@ -22,9 +22,7 @@ class App extends StatelessWidget {
           primarySwatch: Colors.blue,
           visualDensity: VisualDensity.adaptivePlatformDensity,
         ),
-        home: DashboardView(
-          buildings: [],
-        ), // Set the initial route or home screen
+        home: DashboardScreen(), // Set the initial route or home screen
         // Define other routes here if necessary
       ), // Close the MaterialApp widget
     ); // Close the Directionality widget
