@@ -4,15 +4,15 @@ import 'package:zion_link/core/services/storage_service.dart';
 class UserBuildingAssociationService {
   Future<List<UserBuildingAssociation>> getAllAssociations() async {
     final associationsFromFile =
-        await StorageService.readUserBuildingAssociations();
+        await StorageService.readAllUserBuildingAssociations();
     return associationsFromFile
-        .map<UserBuildingAssociation>(
-            (item) => UserBuildingAssociation.fromJson(item))
+        .map<UserBuildingAssociation>((item) =>
+            UserBuildingAssociation.fromJson(item as Map<String, dynamic>))
         .toList();
   }
 
   Future<void> addAssociation(UserBuildingAssociation newAssociation) async {
-    await StorageService.addUserBuildingAssociation(newAssociation);
+    await StorageService.createUserBuildingAssociation(newAssociation);
   }
 
   Future<void> updateAssociation(

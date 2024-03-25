@@ -1,7 +1,3 @@
-import 'apartment.dart';
-import 'expense.dart';
-import 'user.dart';
-
 class Building {
   final String id;
   String name;

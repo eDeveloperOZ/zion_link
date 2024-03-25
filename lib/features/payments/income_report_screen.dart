@@ -3,6 +3,7 @@ import 'package:zion_link/core/models/apartment.dart';
 import 'package:intl/intl.dart';
 import 'package:zion_link/core/models/payment.dart';
 import 'package:zion_link/core/services/crud/apartment_service.dart';
+import 'package:zion_link/core/services/crud/payment_service.dart'; // Add this import
 import 'package:zion_link/shared/widgets/success_message_widget.dart'; // Add this line
 
 class IncomeReportScreen extends StatefulWidget {
@@ -263,6 +264,8 @@ class _IncomeReportScreenState extends State<IncomeReportScreen> {
 
   void _submitReport() async {
     ApartmentService apartmentService = ApartmentService();
+    PaymentService paymentService =
+        PaymentService(); // Initialize PaymentService
 
     List<Payment> payments = [];
 
@@ -274,35 +277,39 @@ class _IncomeReportScreenState extends State<IncomeReportScreen> {
         startMonth = startMonth % 12;
       }
 
-      int endMonth = paymentPeriodEnd.month + i + 1;
-      int endYear = paymentPeriodEnd.year;
-      if (endMonth > 12) {
-        endYear += endMonth ~/ 12;
-        endMonth = endMonth % 12;
+      DateTime periodStart =
+          DateTime(startYear, startMonth, paymentPeriodStart.day);
+      DateTime periodEnd =
+          DateTime(periodStart.year, periodStart.month + 1, periodStart.day);
+
+      // Adjust for cases where adding a month goes beyond the last month of the year
+      if (periodEnd.month > 12) {
+        periodEnd = DateTime(periodEnd.year + 1, 1, periodEnd.day);
       }
 
       // Create a new Payment object for each payment
       Payment payment = Payment(
-        id: UniqueKey().toString(), // Generate a unique ID for each payment
+        id: UniqueKey().toString(),
         apartmentId: widget.apartment.id,
         madeByName: payerName,
         amount: paymentAmount / numberOfPayments,
         dateMade: paymentDate,
-        periodCoverageStart:
-            DateTime(startYear, startMonth, paymentPeriodStart.day)
-                .toIso8601String(),
-        periodCoverageEnd:
-            DateTime(endYear, endMonth, paymentPeriodEnd.day).toIso8601String(),
+        periodCoverageStart: periodStart.toIso8601String(),
+        periodCoverageEnd: periodEnd.toIso8601String(),
         paymentMethod: paymentMethod,
         reason: paymentPurpose,
         isConfirmed: false,
       );
 
       payments.add(payment);
+
+      // Use PaymentService to create the payment
+      await paymentService.createPayment(payment);
     }
 
-    widget.apartment.payments.addAll(payments);
-    apartmentService.updateApartment(widget.apartment);
+    // Update the apartment with the new payments
+    await apartmentService.updateApartment(widget.apartment);
+
     ScaffoldMessenger.of(context).showSnackBar(
       SuccessMessageWidget.create(message: 'הדיווח נשלח בהצלחה'),
     );

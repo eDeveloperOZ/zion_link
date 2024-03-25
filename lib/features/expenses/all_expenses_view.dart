@@ -5,16 +5,16 @@ import 'package:zion_link/features/expenses/edit_expense_view.dart';
 import 'package:zion_link/shared/widgets/delete_button.dart';
 import 'package:zion_link/shared/widgets/display_document_widget.dart';
 
-class AttendantExpensesView extends StatefulWidget {
-  const AttendantExpensesView({Key? key, required this.buildingId})
-      : super(key: key);
+class AllExpensesView extends StatefulWidget {
+  // TODO: change to AllExpensesScreen
+  const AllExpensesView({Key? key, required this.buildingId}) : super(key: key);
   final String buildingId;
 
   @override
-  _AttendantExpensesViewState createState() => _AttendantExpensesViewState();
+  _AllExpensesViewState createState() => _AllExpensesViewState();
 }
 
-class _AttendantExpensesViewState extends State<AttendantExpensesView> {
+class _AllExpensesViewState extends State<AllExpensesView> {
   List<Expense> expenses = [];
 
   @override
@@ -26,7 +26,7 @@ class _AttendantExpensesViewState extends State<AttendantExpensesView> {
   Future<void> _loadExpenses(String buildingId) async {
     ExpenseService expenseService = ExpenseService();
     List<Expense> loadedExpenses =
-        await expenseService.getAllExpensesForBuilding(buildingId);
+        await expenseService.readAllExpensesForBuilding(buildingId);
     setState(() {
       expenses = loadedExpenses;
     });
@@ -66,7 +66,7 @@ class _AttendantExpensesViewState extends State<AttendantExpensesView> {
             context,
             MaterialPageRoute(
               builder: (context) => EditExpenseView(
-                  payment: expenses[index], buildingId: widget.buildingId),
+                  expense: expenses[index], buildingId: widget.buildingId),
             ),
           );
           _loadExpenses(

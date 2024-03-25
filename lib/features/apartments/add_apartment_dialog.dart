@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:zion_link/core/models/apartment.dart';
+import 'package:zion_link/shared/widgets/error_message_widget.dart';
 
 class AddApartmentDialog extends StatefulWidget {
   final String buildingId;
@@ -31,15 +32,15 @@ class _AddApartmentDialogState extends State<AddApartmentDialog> {
         IconButton(
           icon: Icon(Icons.add, size: 24),
           onPressed: () {
-            showDialog(
-              context: context,
-              builder: (builderContext) {
-                return _addApartmentDialog(builderContext);
-              },
+            ScaffoldMessenger.of(context).showSnackBar(
+              ErrorMessageWidget.create(
+                message:
+                    'כפתור לא בשימוש ברגע זה', // This button is not in use at the moment in Hebrew
+              ),
             );
           },
         ),
-        Text('הוסף דירה חדשה'), // Text under the icon
+        Text('ערוך פרטי דירה'), // Text under the icon
       ],
     );
   }
@@ -95,7 +96,7 @@ class _AddApartmentDialogState extends State<AddApartmentDialog> {
       ownerName: ownerName,
       attendantName: attendantName,
       yearlyPaymentAmount: yearlyPaymentAmount,
-      payments: [],
+      pastDebt: 0,
     );
 
     // Call the onAdd callback with the newApartment

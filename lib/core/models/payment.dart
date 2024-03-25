@@ -42,13 +42,13 @@ class Payment {
     return Payment(
       id: json['id'],
       apartmentId: json['apartmentId'],
-      madeByName: json['madeByName'],
+      madeByName: json['madeByName'] ?? '',
       amount: json['amount'],
       dateMade: DateTime.parse(json['dateMade']),
-      periodCoverageStart: json['periodCoverageStart'],
-      periodCoverageEnd: json['periodCoverageEnd'],
-      paymentMethod: json['paymentMethod'],
-      reason: json['reason'],
+      periodCoverageStart: json['periodCoverageStart'] ?? '',
+      periodCoverageEnd: json['periodCoverageEnd'] ?? '',
+      paymentMethod: json['paymentMethod'] ?? '',
+      reason: json['reason'] ?? '',
       isConfirmed: json['isConfirmed'] ?? false,
     );
   }

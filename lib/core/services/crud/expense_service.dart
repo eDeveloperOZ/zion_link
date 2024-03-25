@@ -5,25 +5,19 @@ import 'package:zion_link/core/services/storage_service.dart';
 class ExpenseService {
   final BuildingService buildingService = BuildingService();
 
-  Future<List<Expense>> getAllExpensesForBuilding(String buildingId) async {
-    final expenses = await StorageService.readExpenses(buildingId);
+  Future<List<Expense>> readAllExpensesForBuilding(String buildingId) async {
+    final expenses =
+        await StorageService.readAllExpensesForBuilding(buildingId);
     return expenses;
   }
 
-  Future<Expense?> getExpenseById(String expenseId) async {
-    final expenses = await StorageService.getAllBuildings();
-    for (var building in expenses) {
-      final expense = building.expenses
-          .firstWhere((expense) => expense.id == expenseId, orElse: () => null);
-      if (expense != null) {
-        return expense;
-      }
-    }
-    return null;
+  Future<Expense?> readExpenseById(String expenseId) async {
+    final expenses = await StorageService.readAllExpensesForBuilding(expenseId);
+    return expenses.firstWhere((expense) => expense.id == expenseId);
   }
 
-  Future<void> addExpense(Expense expense) async {
-    await StorageService.addExpenseToBuilding(expense.buildingId, expense);
+  Future<void> createExpense(Expense expense) async {
+    await StorageService.createExpense(expense);
   }
 
   Future<void> updateExpense(Expense updatedExpense) async {
@@ -31,10 +25,6 @@ class ExpenseService {
   }
 
   Future<void> deleteExpense(String expenseId) async {
-    final expenses = await StorageService.getAllBuildings();
-    for (var building in expenses) {
-      building.expenses.removeWhere((expense) => expense.id == expenseId);
-      await StorageService.writeBuildings(expenses);
-    }
+    await StorageService.deleteExpense(expenseId);
   }
 }

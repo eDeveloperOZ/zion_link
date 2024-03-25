@@ -22,9 +22,7 @@ class App extends StatelessWidget {
           primarySwatch: Colors.blue,
           visualDensity: VisualDensity.adaptivePlatformDensity,
         ),
-        home: DashboardScreen(
-          buildings: [],
-        ), // Set the initial route or home screen
+        home: DashboardScreen(), // Set the initial route or home screen
         // Define other routes here if necessary
       ), // Close the MaterialApp widget
     ); // Close the Directionality widget

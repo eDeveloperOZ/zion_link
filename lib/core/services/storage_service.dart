@@ -4,380 +4,368 @@ import 'dart:convert';
 import 'package:zion_link/core/models/apartment.dart';
 import 'package:zion_link/core/models/expense.dart';
 import 'package:zion_link/core/models/payment.dart';
+import 'package:zion_link/core/models/building.dart';
 import 'package:zion_link/core/models/user.dart';
 import 'package:zion_link/core/models/user_building_association.dart';
 
 class StorageService {
-  static Future<String> get _localPath async {
+  static Future<String> get localPath async {
     final directory = await getApplicationDocumentsDirectory();
     return directory.path;
   }
 
-  // return path to file
-  Future<String> getFilePath() async {
-    return await _localPath;
-  }
-
-  static Future<File> get _localFile async {
-    final path = await _localPath;
-    print('$path/buildings.json');
-    print('$path/users.json');
+  // Buildings
+  static Future<File> get _buildingsFile async {
+    final path = await localPath;
     return File('$path/buildings.json');
   }
 
-  // Buildings
-  static Future<File> writeBuildings(List buildings) async {
-    final file = await _localFile;
-    return file.writeAsString(json.encode(buildings));
-  }
-
-  static Future<List> getAllBuildings() async {
+  static Future<List<Building>> readAllBuildings() async {
     try {
-      final file = await _localFile;
+      final file = await _buildingsFile;
       final contents = await file.readAsString();
-      final List buildings = json.decode(contents) ?? [];
-      // Ensure every building has a non-null list of apartments
-      for (var building in buildings) {
-        building['apartments'] = building['apartments'] ?? [];
-      }
-      return buildings;
+      final List<dynamic> buildingsJson = json.decode(contents) ?? [];
+      return buildingsJson.map((json) => Building.fromJson(json)).toList();
     } catch (e) {
       print(e.toString());
       return [];
     }
   }
 
-  static Future<void> addExpenseToBuilding(
-      String buildingId, Expense newExpense) async {
-    final List buildings = await getAllBuildings();
-    bool found = false;
-    for (var building in buildings) {
-      if (building['id'] == buildingId) {
-        final List expenses = building['expenses'] ?? [];
-        expenses.add(
-            newExpense.toJson()); // Assuming Expense class has a toJson method
-        building['expenses'] = expenses;
-        found = true;
-        break;
-      }
-    }
-    if (!found) {
-      print("Building with ID $buildingId not found.");
-    } else {
-      await writeBuildings(buildings);
+  static Future<void> createBuilding(Building newBuilding) async {
+    final buildings = await readAllBuildings();
+    buildings.add(newBuilding);
+    final file = await _buildingsFile;
+    await file
+        .writeAsString(json.encode(buildings.map((b) => b.toJson()).toList()));
+  }
+
+  static Future<Building> readBuildingById(String buildingId) async {
+    final buildings = await readAllBuildings();
+    return buildings.firstWhere((building) => building.id == buildingId);
+  }
+
+  static Future<void> updateBuilding(Building updatedBuilding) async {
+    final buildings = await readAllBuildings();
+    final index = buildings.indexWhere((b) => b.id == updatedBuilding.id);
+    if (index != -1) {
+      buildings[index] = updatedBuilding;
+      final file = await _buildingsFile;
+      await file.writeAsString(
+          json.encode(buildings.map((b) => b.toJson()).toList()));
     }
   }
 
-  Future<void> addPaymentToBuilding(
-      String buildingId, Payment newPayment) async {
-    final List buildings = await getAllBuildings();
-    bool found = false;
-    for (var building in buildings) {
-      if (building['id'] == buildingId) {
-        final List apartments = building['apartments'];
-        final int apartmentIndex = apartments.indexWhere(
-            (apartment) => apartment['id'] == newPayment.apartmentId);
-        if (apartmentIndex != -1) {
-          apartments[apartmentIndex]['payments'] =
-              apartments[apartmentIndex]['payments'] ?? [];
-          apartments[apartmentIndex]['payments'].add(newPayment.toJson());
-        }
-        found = true;
-        break;
-      }
-    }
-    if (!found) {
-      print("Building with ID $buildingId not found.");
-    } else {
-      await writeBuildings(buildings);
-    }
+  static Future<void> deleteBuilding(String buildingId) async {
+    final buildings = await readAllBuildings();
+    buildings.removeWhere((building) => building.id == buildingId);
+    final file = await _buildingsFile;
+    await file
+        .writeAsString(json.encode(buildings.map((b) => b.toJson()).toList()));
   }
 
   // Apartments
-  static Future<void> updateApartment(Apartment updatedApartment) async {
-    final List buildings =
-        await getAllBuildings(); // Assuming this returns a list of buildings
-    for (var building in buildings) {
-      final List apartments = building['apartments'];
-      final int index = apartments
-          .indexWhere((apartment) => apartment['id'] == updatedApartment.id);
-      if (index != -1) {
-        apartments[index] = updatedApartment
-            .toJson(); // Assuming Apartment class has a toJson method
-        await writeBuildings(buildings);
-        break;
-      }
-    }
+  static Future<File> get _apartmentsFile async {
+    final path = await localPath;
+    return File('$path/apartments.json');
   }
 
-  static Future<void> writeApartment(Apartment apartment) async {
-    final List buildings = await getAllBuildings();
-    bool found = false;
-    for (var building in buildings) {
-      final List apartments = building['apartments'];
-      final int index = apartments.indexWhere((a) => a['id'] == apartment.id);
-      if (index != -1) {
-        apartments[index] = apartment.toJson();
-        found = true;
-        break;
-      }
-    }
-    if (!found) {
-      // Handle case where apartment is not found in any building
-      print("Apartment with ID ${apartment.id} not found.");
-    } else {
-      await writeBuildings(buildings);
-    }
-  }
-
-  static Future<Apartment?> readApartment(String id) async {
-    final List buildings = await getAllBuildings();
-    for (var building in buildings) {
-      final List apartments = building['apartments'];
-      final index = apartments.indexWhere((apartment) => apartment['id'] == id);
-      if (index != -1) {
-        return Apartment.fromJson(apartments[index]);
-      }
-    }
-    return null; // Return null if apartment with given id is not found
-  }
-
-  // Expenses
-  static Future<void> updateExpense(Expense expense) async {
-    final List buildings = await getAllBuildings();
-    bool foundExpense = false;
-    for (var building in buildings) {
-      if (building['expenses'] != null) {
-        final List expenses = building['expenses'];
-        final int index = expenses.indexWhere((e) => e['id'] == expense.id);
-        if (index != -1) {
-          expenses[index] = expense.toJson();
-          print("Expense updated: ${expenses[index]}");
-          foundExpense = true;
-          break;
-        }
-      }
-    }
-    if (!foundExpense) {
-      print("Expense with ID ${expense.id} not found.");
-    } else {
-      await writeBuildings(buildings);
-    }
-  }
-
-  static Future<void> deleteExpense(String buildingId, String expenseId) async {
-    final List buildings = await getAllBuildings();
-    bool foundBuilding = false;
-    bool foundExpense = false;
-    for (var building in buildings) {
-      if (building['id'] == buildingId) {
-        foundBuilding = true;
-        final List expenses = building['expenses'] ?? [];
-        final int index = expenses.indexWhere((e) => e['id'] == expenseId);
-        if (index != -1) {
-          expenses.removeAt(index);
-          foundExpense = true;
-          print("Expense with ID $expenseId removed.");
-          break;
-        }
-      }
-    }
-    if (!foundBuilding) {
-      print("Building with ID $buildingId not found.");
-    } else if (!foundExpense) {
-      print("Expense with ID $expenseId not found in building $buildingId.");
-    } else {
-      await writeBuildings(buildings);
-    }
-  }
-
-  static Future<List<Expense>> readExpenses(String buildingId) async {
-    final List buildings = await getAllBuildings();
-    for (var building in buildings) {
-      if (building['id'] == buildingId) {
-        final List expensesJson = building['expenses'] ?? [];
-        return expensesJson
-            .map<Expense>((json) => Expense.fromJson(json))
-            .toList();
-      }
-    }
-    return []; // Return an empty list if the building or its expenses are not found
-  }
-
-  // Payments
-  static Future<List<Payment>> readPayments(String buildingId) async {
-    final List buildings = await getAllBuildings();
-    for (var building in buildings) {
-      if (building['id'] == buildingId) {
-        final List paymentsJson = building['payments'] ?? [];
-        return paymentsJson
-            .map<Payment>((json) => Payment.fromJson(json))
-            .toList();
-      }
-    }
-    return []; // Return an empty list if the building or its payments are not found
-  }
-
-  Future<void> updatePayment(Payment updatedPayment) async {
-    final List buildings = await getAllBuildings();
-    bool foundPayment = false;
-    for (var building in buildings) {
-      final List apartments =
-          building['apartments']; // Access apartments from building
-      for (var apartment in apartments) {
-        final List payments =
-            apartment['payments'] ?? []; // Ensure payments list exists
-        final int index =
-            payments.indexWhere((p) => p['id'] == updatedPayment.id);
-        if (index != -1) {
-          payments[index] = updatedPayment.toJson();
-          foundPayment = true;
-          break; // Break the inner loop
-        }
-      }
-      if (foundPayment) {
-        await writeBuildings(
-            buildings); // Save changes if a payment was updated
-        break; // Break the outer loop
-      }
-    }
-    if (!foundPayment) {
-      print("Payment with ID ${updatedPayment.id} not found.");
-    }
-  }
-
-  Future<void> deletePayment(String buildingId, String paymentId) async {
-    final List buildings = await getAllBuildings();
-    bool foundBuilding = false;
-    bool foundPayment = false;
-    for (var building in buildings) {
-      if (building['id'] == buildingId) {
-        foundBuilding = true;
-        final List apartments = building['apartments'] ?? [];
-        for (var apartment in apartments) {
-          final List payments = apartment['payments'] ?? [];
-          final int index = payments.indexWhere((p) => p['id'] == paymentId);
-          if (index != -1) {
-            payments.removeAt(index);
-            foundPayment = true;
-            print("Payment with ID $paymentId removed.");
-            break; // Breaks out of the apartments loop once payment is found and removed
-          }
-        }
-        if (foundPayment) {
-          break; // Breaks out of the buildings loop if payment is found and removed
-        }
-      }
-    }
-    if (!foundBuilding) {
-      print("Building with ID $buildingId not found.");
-    } else if (!foundPayment) {
-      print("Payment with ID $paymentId not found in building $buildingId.");
-    } else {
-      await writeBuildings(
-          buildings); // Save changes only if a payment was found and removed
-    }
-  }
-
-  // Users
-  static Future<File> get _localUserFile async {
-    final path = await _localPath;
-    return File('$path/users.json'); // Separate file for users
-  }
-
-  static Future<List> readUsers() async {
+  static Future<List<Apartment>> readAllApartments() async {
     try {
-      final file = await _localUserFile;
-      if (!file.existsSync()) {
-        return []; // Return an empty list if the file doesn't exist
-      }
+      final file = await _apartmentsFile;
       final contents = await file.readAsString();
-      final List users = json.decode(contents);
-      return users;
+      final List<dynamic> apartmentsJson = json.decode(contents) ?? [];
+      return apartmentsJson.map((json) => Apartment.fromJson(json)).toList();
     } catch (e) {
       print(e.toString());
       return [];
     }
   }
 
-  static Future<File> writeUsers(List users) async {
-    final file = await _localUserFile;
-    return file.writeAsString(json.encode(users));
+  static Future<void> createApartment(Apartment newApartment) async {
+    final apartments = await readAllApartments();
+    apartments.add(newApartment);
+    final file = await _apartmentsFile;
+    await file
+        .writeAsString(json.encode(apartments.map((a) => a.toJson()).toList()));
   }
 
-  static Future<void> addUser(User newUser) async {
-    final List users = await readUsers();
-    users.add(newUser.toJson());
-    await writeUsers(users);
+  static Future<List<Apartment>> readAllApartmentsForBuilding(
+      String buildingId) async {
+    List<Apartment> apartments = await readAllApartments();
+    return apartments
+        .where((apartment) => apartment.buildingId == buildingId)
+        .toList();
+  }
+
+  static Future<Apartment> readApartmentById(String apartmentId) async {
+    final apartments = await readAllApartments();
+    try {
+      return apartments.firstWhere((apartment) => apartment.id == apartmentId);
+    } catch (e) {
+      throw Exception('Apartment not found');
+    }
+  }
+
+  static Future<void> updateApartment(Apartment updatedApartment) async {
+    final apartments = await readAllApartments();
+    final index = apartments.indexWhere((a) => a.id == updatedApartment.id);
+    if (index != -1) {
+      apartments[index] = updatedApartment;
+      final file = await _apartmentsFile;
+      await file.writeAsString(
+          json.encode(apartments.map((a) => a.toJson()).toList()));
+    }
+  }
+
+  static Future<void> deleteApartment(String apartmentId) async {
+    final apartments = await readAllApartments();
+    apartments.removeWhere((apartment) => apartment.id == apartmentId);
+    final file = await _apartmentsFile;
+    await file
+        .writeAsString(json.encode(apartments.map((a) => a.toJson()).toList()));
+  }
+
+  // Expenses
+  static Future<File> get _expensesFile async {
+    final path = await localPath;
+    return File('$path/expenses.json');
+  }
+
+  static Future<List<Expense>> readAllExpenses() async {
+    try {
+      final file = await _expensesFile;
+      final contents = await file.readAsString();
+      final List<dynamic> expensesJson = json.decode(contents) ?? [];
+      return expensesJson.map((json) => Expense.fromJson(json)).toList();
+    } catch (e) {
+      print(e.toString());
+      return [];
+    }
+  }
+
+  static Future<List<Expense>> readAllExpensesForBuilding(
+      String buildingId) async {
+    final expenses = await readAllExpenses();
+    return expenses
+        .where((expense) => expense.buildingId == buildingId)
+        .toList();
+  }
+
+  static Future<void> createExpense(Expense newExpense) async {
+    final expenses = await readAllExpenses();
+    expenses.add(newExpense);
+    final file = await _expensesFile;
+    await file
+        .writeAsString(json.encode(expenses.map((e) => e.toJson()).toList()));
+  }
+
+  static Future<Expense?> readExpenseById(String expenseId) async {
+    final expenses = await readAllExpenses();
+    try {
+      return expenses.firstWhere((expense) => expense.id == expenseId);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  static Future<void> updateExpense(Expense updatedExpense) async {
+    final expenses = await readAllExpenses();
+    final index = expenses.indexWhere((e) => e.id == updatedExpense.id);
+    if (index != -1) {
+      expenses[index] = updatedExpense;
+      final file = await _expensesFile;
+      await file
+          .writeAsString(json.encode(expenses.map((e) => e.toJson()).toList()));
+    }
+  }
+
+  static Future<void> deleteExpense(String expenseId) async {
+    final expenses = await readAllExpenses();
+    expenses.removeWhere((expense) => expense.id == expenseId);
+    final file = await _expensesFile;
+    await file
+        .writeAsString(json.encode(expenses.map((e) => e.toJson()).toList()));
+  }
+
+  // Payments
+  static Future<File> get _paymentsFile async {
+    final path = await localPath;
+    return File('$path/payments.json');
+  }
+
+  static Future<List<Payment>> readAllPayments() async {
+    try {
+      final file = await _paymentsFile;
+      final contents = await file.readAsString();
+      final List<dynamic> paymentsJson = json.decode(contents) ?? [];
+      return paymentsJson.map((json) => Payment.fromJson(json)).toList();
+    } catch (e) {
+      print(e.toString());
+      return [];
+    }
+  }
+
+  static Future<List<Payment>> readAllPaymentsForApartment(
+      String apartmentId) async {
+    final payments = await readAllPayments();
+    return payments
+        .where((payment) => payment.apartmentId == apartmentId)
+        .toList();
+  }
+
+  static Future<void> createPayment(Payment newPayment) async {
+    final payments = await readAllPayments();
+    payments.add(newPayment);
+    final file = await _paymentsFile;
+    await file
+        .writeAsString(json.encode(payments.map((p) => p.toJson()).toList()));
+  }
+
+  static Future<Payment?> readPaymentById(String paymentId) async {
+    final payments = await readAllPayments();
+    try {
+      return payments.firstWhere((payment) => payment.id == paymentId);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  static Future<void> updatePayment(Payment updatedPayment) async {
+    final payments = await readAllPayments();
+    final index = payments.indexWhere((p) => p.id == updatedPayment.id);
+    if (index != -1) {
+      payments[index] = updatedPayment;
+      final file = await _paymentsFile;
+      await file
+          .writeAsString(json.encode(payments.map((p) => p.toJson()).toList()));
+    }
+  }
+
+  static Future<void> deletePayment(String paymentId) async {
+    final payments = await readAllPayments();
+    payments.removeWhere((payment) => payment.id == paymentId);
+    final file = await _paymentsFile;
+    await file
+        .writeAsString(json.encode(payments.map((p) => p.toJson()).toList()));
+  }
+
+  // Users
+  static Future<File> get _usersFile async {
+    final path = await localPath;
+    return File('$path/users.json');
+  }
+
+  static Future<List<User>> readAllUsers() async {
+    try {
+      final file = await _usersFile;
+      final contents = await file.readAsString();
+      final List<dynamic> usersJson = json.decode(contents) ?? [];
+      return usersJson.map((json) => User.fromJson(json)).toList();
+    } catch (e) {
+      print(e.toString());
+      return [];
+    }
+  }
+
+  static Future<void> createUser(User newUser) async {
+    final users = await readAllUsers();
+    users.add(newUser);
+    final file = await _usersFile;
+    await file
+        .writeAsString(json.encode(users.map((u) => u.toJson()).toList()));
+  }
+
+  static Future<User?> readUserById(String userId) async {
+    final users = await readAllUsers();
+    try {
+      return users.firstWhere((user) => user.id == userId);
+    } catch (e) {
+      return null;
+    }
   }
 
   static Future<void> updateUser(User updatedUser) async {
-    List users = await readUsers();
-    int index = users.indexWhere((user) => user['id'] == updatedUser.id);
+    final users = await readAllUsers();
+    final index = users.indexWhere((u) => u.id == updatedUser.id);
     if (index != -1) {
-      users[index] = updatedUser.toJson();
-      await writeUsers(users);
+      users[index] = updatedUser;
+      final file = await _usersFile;
+      await file
+          .writeAsString(json.encode(users.map((u) => u.toJson()).toList()));
     }
   }
 
   static Future<void> deleteUser(String userId) async {
-    List users = await readUsers();
-    users.removeWhere((user) => user['id'] == userId);
-    await writeUsers(users);
+    final users = await readAllUsers();
+    users.removeWhere((user) => user.id == userId);
+    final file = await _usersFile;
+    await file
+        .writeAsString(json.encode(users.map((u) => u.toJson()).toList()));
   }
 
-  // userbuildingassociation
+  // User Building Associations
+  static Future<File> get _userBuildingAssociationsFile async {
+    final path = await localPath;
+    return File('$path/user_building_associations.json');
+  }
 
-  static Future<List> readUserBuildingAssociations() async {
+  static Future<List<UserBuildingAssociation>>
+      readAllUserBuildingAssociations() async {
     try {
-      final file = await _localUserBuildingAssociationFile;
-      if (!file.existsSync()) {
-        return []; // Return an empty list if the file doesn't exist
-      }
+      final file = await _userBuildingAssociationsFile;
       final contents = await file.readAsString();
-      final List associations = json.decode(contents);
-      return associations;
+      final List<dynamic> associationsJson = json.decode(contents) ?? [];
+      return associationsJson
+          .map((json) => UserBuildingAssociation.fromJson(json))
+          .toList();
     } catch (e) {
       print(e.toString());
       return [];
     }
   }
 
-  static Future<File> writeUserBuildingAssociations(List associations) async {
-    final file = await _localUserBuildingAssociationFile;
-    return file.writeAsString(json.encode(associations));
+  static Future<void> createUserBuildingAssociation(
+      UserBuildingAssociation newAssociation) async {
+    final associations = await readAllUserBuildingAssociations();
+    associations.add(newAssociation);
+    final file = await _userBuildingAssociationsFile;
+    await file.writeAsString(
+        json.encode(associations.map((a) => a.toJson()).toList()));
   }
 
-  static Future<void> addUserBuildingAssociation(
-      UserBuildingAssociation newAssociation) async {
-    final List associations = await readUserBuildingAssociations();
-    associations.add(newAssociation.toJson());
-    await writeUserBuildingAssociations(associations);
+  static Future<UserBuildingAssociation?> readUserBuildingAssociationById(
+      String userId, String buildingId) async {
+    final associations = await readAllUserBuildingAssociations();
+    try {
+      return associations.firstWhere((association) =>
+          association.userId == userId && association.buildingId == buildingId);
+    } catch (e) {
+      return null;
+    }
   }
 
   static Future<void> updateUserBuildingAssociation(
       UserBuildingAssociation updatedAssociation) async {
-    List associations = await readUserBuildingAssociations();
-    int index = associations.indexWhere((association) =>
-        association['userId'] == updatedAssociation.userId &&
-        association['buildingId'] == updatedAssociation.buildingId);
+    final associations = await readAllUserBuildingAssociations();
+    final index = associations.indexWhere((a) =>
+        a.userId == updatedAssociation.userId &&
+        a.buildingId == updatedAssociation.buildingId);
     if (index != -1) {
-      associations[index] = updatedAssociation.toJson();
-      await writeUserBuildingAssociations(associations);
+      associations[index] = updatedAssociation;
+      final file = await _userBuildingAssociationsFile;
+      await file.writeAsString(
+          json.encode(associations.map((a) => a.toJson()).toList()));
     }
   }
 
   static Future<void> deleteUserBuildingAssociation(
       String userId, String buildingId) async {
-    List associations = await readUserBuildingAssociations();
+    final associations = await readAllUserBuildingAssociations();
     associations.removeWhere((association) =>
-        association['userId'] == userId &&
-        association['buildingId'] == buildingId);
-    await writeUserBuildingAssociations(associations);
-  }
-
-  static Future<File> get _localUserBuildingAssociationFile async {
-    final path = await _localPath;
-    return File('$path/user_building_associations.json');
+        association.userId == userId && association.buildingId == buildingId);
+    final file = await _userBuildingAssociationsFile;
+    await file.writeAsString(
+        json.encode(associations.map((a) => a.toJson()).toList()));
   }
 }

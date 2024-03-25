@@ -3,7 +3,7 @@ import 'package:zion_link/core/models/expense.dart';
 import 'package:zion_link/core/services/crud/expense_service.dart';
 import 'package:zion_link/shared/widgets/category_dropdown.dart';
 import 'package:zion_link/shared/widgets/upload_document_button.dart';
-import 'package:zion_link/features/expenses/all_expenses_button.dart'; // Import the AllExpenses widget
+import 'package:zion_link/features/expenses/expense_report_button.dart'; // Import the AllExpenses widget
 
 class ExpenseReportDialog extends StatefulWidget {
   final String buildingId;
@@ -36,7 +36,7 @@ class _ExpenseReportDialogState extends State<ExpenseReportDialog> {
   void _loadExpenses() async {
     ExpenseService expenseService = ExpenseService();
     List<Expense> loadedExpenses =
-        await expenseService.getAllExpensesForBuilding(widget.buildingId);
+        await expenseService.readAllExpensesForBuilding(widget.buildingId);
     setState(() {
       _expenses = loadedExpenses;
     });
@@ -75,7 +75,7 @@ class _ExpenseReportDialogState extends State<ExpenseReportDialog> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
-        AllExpensesButton(
+        ExpenseReportButton(
           expenses: _expenses,
           buildingId: widget.buildingId,
           onExpensesUpdated: () {
@@ -160,7 +160,7 @@ class _ExpenseReportDialogState extends State<ExpenseReportDialog> {
     );
 
     ExpenseService expenseService = ExpenseService();
-    await expenseService.addExpense(newExpense);
+    await expenseService.createExpense(newExpense);
 
     widget.onExpenseAdded(newExpense);
     setState(() {

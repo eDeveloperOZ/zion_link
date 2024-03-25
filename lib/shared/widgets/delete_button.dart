@@ -55,7 +55,7 @@ class DeleteButton extends StatelessWidget {
             controller: passwordController,
             obscureText: true,
             decoration: const InputDecoration(
-              hintText: 'סיסמא',
+              hintText: 'סיסמא: 2020',
             ),
           ),
           actions: <Widget>[

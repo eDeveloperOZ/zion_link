@@ -37,4 +37,22 @@ class ErrorMessageWidget {
       ),
     );
   }
+
+  static Widget createSimpleErrorMessage({required String message}) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.redAccent,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        message,
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: 16,
+        ),
+        textAlign: TextAlign.center,
+      ),
+    );
+  }
 }

@@ -9,7 +9,7 @@ class AddBuildingView extends StatelessWidget {
   final TextEditingController nameController = TextEditingController();
   final TextEditingController addressController = TextEditingController();
   final TextEditingController numberOfApartmentsController =
-      TextEditingController(); // Controller for number of apartments
+      TextEditingController();
 
   AddBuildingView({required this.addBuildingCallback});
 
@@ -30,8 +30,7 @@ class AddBuildingView extends StatelessWidget {
             decoration: InputDecoration(labelText: 'כתובת'),
           ),
           TextField(
-            controller:
-                numberOfApartmentsController, // Use the new controller here
+            controller: numberOfApartmentsController,
             decoration: InputDecoration(labelText: 'מספר דירות'),
             keyboardType: TextInputType.number,
           ),
@@ -41,11 +40,12 @@ class AddBuildingView extends StatelessWidget {
               final newBuilding = Building(
                 id: DateTime.now().millisecondsSinceEpoch.toString(),
                 name: nameController.text,
+                balance: 0.0,
                 address: addressController.text,
               );
 
-              // Use BuildingService to add the new building
-              await BuildingService().addBuilding(newBuilding);
+              // Use BuildingService to create the new building
+              await BuildingService().createBuilding(newBuilding);
 
               // After the building is created, generate the apartments
               final int numberOfApartments =
@@ -55,22 +55,22 @@ class AddBuildingView extends StatelessWidget {
                 return Apartment(
                   id: DateTime.now().millisecondsSinceEpoch.toString() +
                       "_$index",
-                  buildingId:
-                      newBuilding.id, // Assign the newly created building's ID
+                  buildingId: newBuilding.id,
                   number: "${index + 1}",
                   ownerName: "",
                   attendantName: "",
                   yearlyPaymentAmount: 0,
-                  payments: [],
+                  pastDebt: 0,
                 );
               });
 
+              // Use ApartmentService to create the apartments
               for (var apartment in apartments) {
-                await ApartmentService().addApartment(apartment);
+                await ApartmentService().createApartment(apartment);
               }
 
               // Callback and navigation remain the same
-              addBuildingCallback(newBuilding);
+              addBuildingCallback();
               Navigator.pop(context, true);
             },
             child: Text('הוסף'),

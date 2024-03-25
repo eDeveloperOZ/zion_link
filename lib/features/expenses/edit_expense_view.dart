@@ -2,13 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:zion_link/core/models/expense.dart';
 import 'package:zion_link/core/services/storage_service.dart';
 import 'package:zion_link/shared/widgets/confirm_dialog_widget.dart';
+import 'package:zion_link/core/services/crud/expense_service.dart'; // Import ExpenseService
 
 class EditExpenseView extends StatefulWidget {
-  final Expense payment;
+  final Expense expense;
   final String buildingId;
 
   const EditExpenseView(
-      {Key? key, required this.payment, required this.buildingId})
+      {Key? key, required this.expense, required this.buildingId})
       : super(key: key);
 
   @override
@@ -31,14 +32,16 @@ class _EditExpenseViewState extends State<EditExpenseView> {
     'אחר...'
   ];
 
+  final ExpenseService _expenseService = ExpenseService(); // Add this line
+
   @override
   void initState() {
     super.initState();
     _amountController =
-        TextEditingController(text: widget.payment.amount.toString());
-    _noteController = TextEditingController(text: widget.payment.title);
-    _selectedCategory = widget.payment.categoryId;
-    _selectedDate = widget.payment.date;
+        TextEditingController(text: widget.expense.amount.toString());
+    _noteController = TextEditingController(text: widget.expense.title);
+    _selectedCategory = widget.expense.categoryId;
+    _selectedDate = widget.expense.date;
 
     // Add the category if it's not in the list
     if (_selectedCategory != null && !_categories.contains(_selectedCategory)) {
@@ -57,7 +60,7 @@ class _EditExpenseViewState extends State<EditExpenseView> {
     if (_formKey.currentState!.validate()) {
       // Assuming an updateExpense method is defined in a suitable class
       await StorageService.updateExpense(
-        widget.payment.copyWith(
+        widget.expense.copyWith(
           amount: double.parse(_amountController.text),
           title: _noteController.text,
           categoryId: _selectedCategory!,
@@ -78,7 +81,8 @@ class _EditExpenseViewState extends State<EditExpenseView> {
     );
 
     if (confirmDelete == true) {
-      await StorageService.deleteExpense(widget.buildingId, widget.payment.id);
+      // Use ExpenseService to delete the expense
+      await _expenseService.deleteExpense(widget.expense.id);
       Navigator.of(context).pop(true);
     }
   }

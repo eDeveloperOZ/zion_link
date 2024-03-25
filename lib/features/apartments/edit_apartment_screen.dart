@@ -42,7 +42,7 @@ class _EditApartmentScreenState extends State<EditApartmentScreen> {
         ownerName: ownerName,
         attendantName: attendantName,
         yearlyPaymentAmount: yearlyPaymentAmount,
-        payments: widget.apartment.payments,
+        pastDebt: widget.apartment.pastDebt,
       );
       ApartmentService().updateApartment(updatedApartment);
       widget.onApartmentUpdated(updatedApartment);

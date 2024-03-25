@@ -1,43 +1,41 @@
 import 'package:flutter/material.dart';
+import 'package:zion_link/features/expenses/all_expenses_button.dart';
 import 'package:zion_link/features/payments/all_payments_view.dart';
 import 'package:zion_link/core/models/building.dart';
-import 'package:zion_link/core/models/apartment.dart';
 import 'package:zion_link/core/models/expense.dart';
+import 'package:zion_link/core/models/apartment.dart';
+import 'package:zion_link/core/models/payment.dart';
 import 'package:zion_link/core/services/crud/building_service.dart';
 import 'package:zion_link/core/services/crud/apartment_service.dart';
 import 'package:zion_link/core/services/crud/expense_service.dart';
-import 'package:zion_link/features/payments/attendant_payments_view.dart';
+import 'package:zion_link/core/services/crud/payment_service.dart';
+import 'package:zion_link/features/payments/apartment_payments_view.dart';
 import 'package:zion_link/features/apartments/add_apartment_dialog.dart';
 import 'package:zion_link/shared/widgets/apartment_row.dart';
 import 'package:zion_link/features/buildings/edit_building_details_dialog.dart';
 import 'package:zion_link/features/buildings/delete_building_button.dart';
 import 'package:zion_link/features/expenses/expense_report_dialog.dart';
-import 'package:zion_link/shared/widgets/edit_apartment_dialog.dart';
+// import 'package:zion_link/shared/widgets/edit_apartment_dialog.dart';
 import 'package:zion_link/features/reports/report_generator_button.dart';
 
 // StatefulWidget for displaying detailed view of a building
-class BuildingDetailView extends StatefulWidget {
+class BuildingsDetailsScreen extends StatefulWidget {
   final Building building;
-  final Function onBuildingDeleted;
-  final Function(Building) onBuildingUpdated;
-  final Function onExpenseAdded;
   // Constructor requiring all the properties to be initialized
-  BuildingDetailView({
-    required this.building,
-    required this.onBuildingDeleted,
-    required this.onBuildingUpdated,
-    required this.onExpenseAdded, // Initialize in constructor
+  BuildingsDetailsScreen({
+    required this.building, // Initialize in constructor
   });
 
   @override
-  State<BuildingDetailView> createState() => _BuildingDetailViewState();
+  State<BuildingsDetailsScreen> createState() => _BuildingsDetailsScreenState();
 }
 
-class _BuildingDetailViewState extends State<BuildingDetailView> {
+class _BuildingsDetailsScreenState extends State<BuildingsDetailsScreen> {
   late Building _building;
   final BuildingService _buildingService = BuildingService();
   final ApartmentService _apartmentService = ApartmentService();
   final ExpenseService _expenseService = ExpenseService();
+  final PaymentService _paymentService = PaymentService();
 
   @override
   void initState() {
@@ -55,7 +53,7 @@ class _BuildingDetailViewState extends State<BuildingDetailView> {
 
   void _onExpenseReported(Expense addedExpense) async {
     Building updatedBuilding =
-        await BuildingService().getBuildingById(_building.id);
+        await BuildingService().readBuildingById(_building.id);
     setState(() {
       _building = updatedBuilding;
     });
@@ -68,29 +66,32 @@ class _BuildingDetailViewState extends State<BuildingDetailView> {
   ///
   /// Returns a [Future<double>] representing the total balance.
   Future<double> _calculateTotalBalance(String buildingId) async {
-    double totalExpenses = 0.0;
-    double totalPayments = 0.0;
-
+    double totalPayments = 0;
+    double totalExpenses = 0;
     // Fetch expenses for the building
     List<Expense> expenses =
-        await _expenseService.getAllExpensesForBuilding(buildingId);
-    for (var expense in expenses) {
+        await _expenseService.readAllExpensesForBuilding(buildingId);
+    expenses.forEach((expense) {
       totalExpenses += expense.amount;
-    }
+    });
 
-    // Fetch apartments to calculate payments
     List<Apartment> apartments =
-        await _apartmentService.getAllApartmentsForBuilding(buildingId);
-    for (var apartment in apartments) {
-      for (var payment in apartment.payments) {
+        await _apartmentService.readAllApartmentsForBuilding(buildingId);
+
+    // Fetch payments to calculate
+    for (Apartment apartment in apartments) {
+      List<Payment> payments =
+          await _paymentService.readAllPaymentsForApartment(apartment.id);
+      payments.forEach((payment) {
         if (payment.isConfirmed) {
+          // Only add amount if the payment is confirmed
           totalPayments += payment.amount;
         }
-      }
+      });
     }
 
     // Calculate total balance
-    double totalBalance = totalPayments - totalExpenses;
+    double totalBalance = totalPayments - totalExpenses + _building.balance;
     return totalBalance;
   }
 
@@ -124,7 +125,7 @@ class _BuildingDetailViewState extends State<BuildingDetailView> {
                       builder: (context, snapshot) {
                         if (snapshot.hasData) {
                           return Text(
-                            '₪${snapshot.data!.toStringAsFixed(2)}',
+                            'יתרה נוכחית: ₪${snapshot.data!.toStringAsFixed(2)}',
                             style: TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold),
@@ -147,7 +148,8 @@ class _BuildingDetailViewState extends State<BuildingDetailView> {
 
   Widget _buildBalanceWidget(BuildContext context) {
     return FutureBuilder<double>(
-      future: _calculateTotalBalance(_building.id),
+      future: Future.value(
+          _building.balance), // Directly use the building's balance
       builder: (context, snapshot) {
         if (snapshot.hasData) {
           return GestureDetector(
@@ -225,7 +227,7 @@ class _BuildingDetailViewState extends State<BuildingDetailView> {
 
   Future<void> _loadBuildingData() async {
     Building updatedBuilding =
-        await _buildingService.getBuildingById(_building.id);
+        await _buildingService.readBuildingById(_building.id);
     setState(() {
       _building = updatedBuilding;
     });
@@ -233,7 +235,7 @@ class _BuildingDetailViewState extends State<BuildingDetailView> {
 
   Future<Widget> _buildApartmentsListView(BuildContext context) async {
     List<Apartment> apartments =
-        await _apartmentService.getAllApartmentsForBuilding(_building.id);
+        await _apartmentService.readAllApartmentsForBuilding(_building.id);
     if (apartments.isEmpty) {
       return Padding(
         padding: const EdgeInsets.all(16.0),
@@ -292,8 +294,7 @@ class _BuildingDetailViewState extends State<BuildingDetailView> {
             ),
             title: Text('${apartment.attendantName} - דירה'),
           ),
-          body: AttendantPaymentsView(
-              building: _building, payments: apartment.payments),
+          body: ApartmentPaymentsView(apartment: apartment),
         ),
       ),
     );
@@ -304,7 +305,7 @@ class _BuildingDetailViewState extends State<BuildingDetailView> {
 
   Future<Widget> _buildBottomNavigationBar() async {
     List<Apartment> apartments =
-        await _apartmentService.getAllApartmentsForBuilding(_building.id);
+        await _apartmentService.readAllApartmentsForBuilding(_building.id);
     return BottomAppBar(
       height: 90,
       child: Row(
@@ -316,7 +317,6 @@ class _BuildingDetailViewState extends State<BuildingDetailView> {
               setState(() {
                 _building.name = newName;
               });
-              widget.onBuildingUpdated(_building);
             },
           ),
           ExpenseReportDialog(
@@ -329,26 +329,13 @@ class _BuildingDetailViewState extends State<BuildingDetailView> {
           AddApartmentDialog(
               buildingId: _building.id,
               onAdd: (Apartment newApartment) async {
-                await _apartmentService.addApartment(newApartment);
+                await _apartmentService.createApartment(newApartment);
                 apartments.add(newApartment);
                 setState(() {});
               }),
-          EditApartmentDialog(
-            apartments: apartments,
-            onApartmentsUpdated: (List<Apartment> updatedApartments) async {
-              apartments = updatedApartments;
-              await _buildingService.updateBuilding(_building);
-              setState(() {});
-            },
-          ),
+          AllExpensesButton(buildingId: _building.id),
           ReportGeneratorButton(building: _building),
-          DeleteBuildingButton(
-            buildingID: _building.id,
-            onBuildingDeleted: () async {
-              await _buildingService.deleteBuilding(_building.id);
-              Navigator.pop(context);
-            },
-          ),
+          DeleteBuildingButton(buildingID: _building.id),
         ],
       ),
     );

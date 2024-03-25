@@ -24,7 +24,7 @@ void main() {
           apartments: [],
           expenses: []); // Initialize testBuilding here
       // Mock the BuildingService methods used in AddBuildingView
-      when(mockBuildingService.addBuilding(testBuilding))
+      when(mockBuildingService.createBuilding(testBuilding))
           .thenAnswer((_) async => Future.value());
       when(mockBuildingService.updateBuilding(testBuilding))
           .thenAnswer((_) async => Future.value());
@@ -56,7 +56,7 @@ void main() {
       await tester.pump();
 
       // Verify that BuildingService methods were called
-      verify(mockBuildingService.addBuilding(testBuilding)).called(1);
+      verify(mockBuildingService.createBuilding(testBuilding)).called(1);
       verify(mockBuildingService.updateBuilding(testBuilding)).called(1);
     });
   });

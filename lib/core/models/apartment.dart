@@ -1,13 +1,11 @@
-import 'payment.dart';
-
 class Apartment {
   final String id;
-  final String buildingId; // foreign key
+  final String buildingId;
   final String number;
   final String ownerName;
   String attendantName;
   double yearlyPaymentAmount;
-  List<Payment> payments;
+  double pastDebt = 0;
 
   Apartment({
     required this.id,
@@ -16,7 +14,7 @@ class Apartment {
     required this.ownerName,
     required this.attendantName,
     required this.yearlyPaymentAmount,
-    required this.payments,
+    required this.pastDebt,
   });
 
   // void reportPayment(Payment payment) {
@@ -36,9 +34,7 @@ class Apartment {
       'ownerName': ownerName,
       'attendantName': attendantName,
       'yearlyPaymentAmount': yearlyPaymentAmount,
-      'payments': payments
-          .map((payment) => payment.toJson())
-          .toList(), // Convert payments to JSON
+      'pastDebt': pastDebt,
     };
   }
 
@@ -50,11 +46,7 @@ class Apartment {
       ownerName: json['ownerName'],
       attendantName: json['attendantName'] ?? '',
       yearlyPaymentAmount: json['yearlyPaymentAmount'],
-      payments: json['payments'] != null
-          ? (json['payments'] as List)
-              .map((paymentJson) => Payment.fromJson(paymentJson))
-              .toList()
-          : [], // Handle no payments case by providing an empty list
+      pastDebt: json['pastDebt'] ?? 0,
     );
   }
 }

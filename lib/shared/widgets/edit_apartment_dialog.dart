@@ -4,6 +4,7 @@ import 'package:zion_link/core/services/crud/apartment_service.dart';
 import 'package:zion_link/shared/widgets/apartment_dropdown.dart'; // Import the new widget
 
 class EditApartmentDialog extends StatefulWidget {
+  // TODO: remove from the tree if not used by any other widgets
   final List<Apartment> apartments;
   final String updatedApartmentId;
   final Function(List<Apartment>) onApartmentsUpdated;
@@ -120,7 +121,7 @@ class _EditApartmentDialogState extends State<EditApartmentDialog> {
         ownerName: widget.apartments[indexToUpdate].ownerName,
         attendantName: attendantName,
         yearlyPaymentAmount: yearlyPaymentAmount,
-        payments: widget.apartments[indexToUpdate].payments,
+        pastDebt: widget.apartments[indexToUpdate].pastDebt,
       );
 
       // Update the apartment in the list

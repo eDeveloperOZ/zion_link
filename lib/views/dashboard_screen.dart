@@ -1,21 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:zion_link/core/models/building.dart';
 import 'package:zion_link/features/buildings/add_building_view.dart';
-import 'package:zion_link/views/building_list_view.dart';
+import 'package:zion_link/views/building_details_screen.dart';
 import 'package:zion_link/core/services/crud/building_service.dart';
 import 'package:zion_link/views/setting_view.dart';
 
 class DashboardScreen extends StatefulWidget {
-  final List<Building> buildings;
-
-  DashboardScreen({required this.buildings});
-
   @override
   _DashboardScreenState createState() => _DashboardScreenState();
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
   List<Building> _localBuildings = [];
+  final BuildingService _buildingService = BuildingService();
 
   @override
   void initState() {
@@ -23,32 +20,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
     _loadBuildings();
   }
 
-  void _loadBuildings() async {
+  Future<void> _loadBuildings() async {
     List<Building> buildingsFromFile =
-        await BuildingService().getAllBuildings();
-    if (buildingsFromFile.isNotEmpty) {
-      setState(() {
-        _localBuildings.addAll(buildingsFromFile);
-      });
-    }
-  }
-
-  void reloadBuildings() async {
-    List<Building> buildingsFromFile =
-        await BuildingService().getAllBuildings();
+        await _buildingService.readAllBuildings();
     setState(() {
-      _localBuildings.clear();
-      _localBuildings.addAll(buildingsFromFile);
+      _localBuildings = buildingsFromFile;
     });
-  }
-
-  void updateBuilding(Building updatedBuilding) async {
-    await BuildingService().updateBuilding(updatedBuilding);
-    reloadBuildings();
-  }
-
-  Future<void> addBuilding(Building newBuilding) async {
-    reloadBuildings();
   }
 
   Widget _buildGridView() {
@@ -62,16 +39,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
       itemBuilder: (context, index) {
         final building = _localBuildings[index];
         return GestureDetector(
-          onTap: () {
-            Navigator.push(
+          onTap: () async {
+            final result = await Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (context) => BuildingDetailView(
-                      building: building,
-                      onExpenseAdded: reloadBuildings,
-                      onBuildingDeleted: reloadBuildings,
-                      onBuildingUpdated: updateBuilding)),
-            ).then((_) => reloadBuildings());
+                builder: (context) =>
+                    BuildingsDetailsScreen(building: building),
+              ),
+            );
+            if (result == true) {
+              _loadBuildings();
+            }
           },
           child: SizedBox(
             height: 100,
@@ -96,10 +74,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildFloatingActionButton() {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 20.0), // Adjust padding as needed
+      padding: const EdgeInsets.only(bottom: 20.0),
       child: Stack(
         children: <Widget>[
-          // Settings Button aligned to the left
           Align(
             alignment: Alignment.bottomLeft,
             child: Padding(
@@ -119,24 +96,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ),
           ),
-          // Centered Add Building Button
           Align(
             alignment: Alignment.bottomCenter,
             child: FloatingActionButton.extended(
-              onPressed: () {
-                Navigator.push(
+              onPressed: () async {
+                final newBuilding = await Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) => AddBuildingView(
-                        addBuildingCallback: (newBuilding) async {
-                      await addBuilding(newBuilding); // Use addBuilding method
-                    }),
+                      addBuildingCallback: _loadBuildings,
+                    ),
                   ),
-                ).then((value) {
-                  if (value == true) {
-                    setState(() {}); // Refresh the state if needed
-                  }
-                });
+                );
+                if (newBuilding is Building) {
+                  await _buildingService.createBuilding(newBuilding);
+                  await _loadBuildings();
+                }
               },
               heroTag: 'addBuildingButton',
               icon: Icon(Icons.add),
