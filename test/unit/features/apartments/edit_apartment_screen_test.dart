@@ -18,8 +18,8 @@ void main() {
       id: '1',
       buildingId: '1',
       number: '101',
-      ownerName: 'John Doe',
-      attendantName: 'Jane Doe',
+      ownerId: 'John Doe',
+      tenantId: 'Jane Doe',
       yearlyPaymentAmount: 1200.00,
       payments: [],
     );

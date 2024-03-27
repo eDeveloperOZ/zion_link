@@ -4,13 +4,13 @@ import 'package:zion_link/core/services/file_upload_service.dart';
 
 class ReceiptView extends StatelessWidget {
   final Payment payment;
-  final String attendantName;
+  final String tenantName;
   final String buildingAddress;
 
   const ReceiptView({
     Key? key,
     required this.payment,
-    required this.attendantName,
+    required this.tenantName,
     required this.buildingAddress,
   }) : super(key: key);
 
@@ -21,12 +21,12 @@ class ReceiptView extends StatelessWidget {
       content: SingleChildScrollView(
         child: ListBody(
           children: <Widget>[
-            Text('שם הדייר: $attendantName'),
+            Text('שם הדייר: $tenantName'),
             Text('כתובת הבניין: $buildingAddress'),
             Text('שיטת התשלום: ${payment.paymentMethod}'),
             Text('עבור: וועד'),
             Text('תאריך: ${payment.dateMade}'),
-            Text('סכום: ${payment.amount}₪'),
+            Text('סכום: ${payment.amount.toStringAsFixed(2)}₪'),
           ],
         ),
       ),
@@ -40,6 +40,7 @@ class ReceiptView extends StatelessWidget {
         TextButton(
           child: Text('הורד קובץ'),
           onPressed: () async {
+            Navigator.of(context).pop();
             String content = generateReceiptContent();
             // Assuming you want to name the file with the current date and time
             String fileName = 'Receipt_${DateTime.now().toIso8601String()}.txt';
@@ -53,7 +54,7 @@ class ReceiptView extends StatelessWidget {
 
   String generateReceiptContent() {
     return '''
-שם הדייר: $attendantName
+שם הדייר: $tenantName
 כתובת הבניין: $buildingAddress
 שיטת התשלום: ${payment.paymentMethod}
 עבור: וועד

@@ -37,7 +37,7 @@
 - `buildingId` (String) (Foreign Key to Building)
 - `number` (String)
 - `ownerName` (String)
-- `attendantName` (String) (optional)
+- `tenantName` (String) (optional)
 - `yearlyPaymentAmount` (double)
 - `payments` (List<Payment>)
 

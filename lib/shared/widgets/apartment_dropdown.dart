@@ -25,7 +25,7 @@ class ApartmentDropdown extends StatelessWidget {
       hint: Text("בחר דייר"),
       items: apartments.map<DropdownMenuItem<String>>((Apartment apartment) {
         String displayText =
-            "דירה ${apartment.number} - ${apartment.attendantName.isNotEmpty ? apartment.attendantName : 'מי גר פה?'}";
+            "דירה ${apartment.number} - ${apartment.tenantId.isNotEmpty ? apartment.tenantId : 'מי גר פה?'}";
         return DropdownMenuItem<String>(
           value: apartment.id,
           child: Text(displayText),

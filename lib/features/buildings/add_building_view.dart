@@ -57,8 +57,8 @@ class AddBuildingView extends StatelessWidget {
                       "_$index",
                   buildingId: newBuilding.id,
                   number: "${index + 1}",
-                  ownerName: "",
-                  attendantName: "",
+                  ownerId: "",
+                  tenantId: "",
                   yearlyPaymentAmount: 0,
                   pastDebt: 0,
                 );

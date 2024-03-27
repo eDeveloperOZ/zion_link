@@ -22,7 +22,14 @@ class ReportBalanceButton extends StatelessWidget {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return ReportBalanceScreen(building: building);
+        return Dialog(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxHeight: 600),
+            child: SingleChildScrollView(
+              child: ReportBalanceScreen(building: building),
+            ),
+          ),
+        );
       },
     );
   }

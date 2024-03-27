@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:zion_link/core/models/building.dart';
-import 'package:zion_link/features/reports/report_balance_button.dart';
-import 'package:zion_link/shared/widgets/receipt_generator_button.dart';
+import 'package:zion_link/features/receipts_and_reports/report_balance_button.dart';
+import 'package:zion_link/features/receipts_and_reports/receipt_generator_button.dart';
 
 class ReportGeneratorDialog extends StatelessWidget {
   final Building building;

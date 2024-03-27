@@ -36,7 +36,7 @@ class _IncomeReportScreenState extends State<IncomeReportScreen> {
   @override
   void initState() {
     super.initState();
-    payerName = widget.apartment.attendantName; // Default to owner's name
+    payerName = widget.apartment.tenantId; // Default to owner's name
     basePaymentAmount = widget.apartment.yearlyPaymentAmount / 12;
     paymentAmount = basePaymentAmount; // Initialize with base amount
     _paymentPurposeController.text = paymentPurpose;
@@ -95,16 +95,16 @@ class _IncomeReportScreenState extends State<IncomeReportScreen> {
     return Column(
       children: [
         RadioListTile<String>(
-          title: Text('המשכיר (${widget.apartment.attendantName})'),
-          value: widget.apartment.attendantName,
+          title: Text('המשכיר (${widget.apartment.tenantId})'),
+          value: widget.apartment.tenantId,
           groupValue: payerName,
           onChanged: (value) {
             setState(() => payerName = value!);
           },
         ),
         RadioListTile<String>(
-          title: Text('הבעלים (${widget.apartment.ownerName})'),
-          value: widget.apartment.ownerName,
+          title: Text('הבעלים (${widget.apartment.ownerId})'),
+          value: widget.apartment.ownerId,
           groupValue: payerName,
           onChanged: (value) {
             setState(() => payerName = value!);

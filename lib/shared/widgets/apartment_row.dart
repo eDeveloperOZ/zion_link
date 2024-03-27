@@ -52,7 +52,7 @@ class _ApartmentRowState extends State<ApartmentRow> {
         children: [
           Expanded(
             child: Text(
-              widget.apartment.attendantName,
+              widget.apartment.tenantId,
               style: TextStyle(fontSize: 25),
             ),
           ),

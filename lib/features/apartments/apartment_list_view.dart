@@ -17,7 +17,7 @@ class ApartmentListView extends StatelessWidget {
         itemBuilder: (context, index) {
           final apartment = apartments[index];
           return ListTile(
-            title: Text(apartment.attendantName),
+            title: Text(apartment.tenantId),
             subtitle: Text(apartment.yearlyPaymentAmount.toString()),
             onTap: () {
               // Navigate to apartment details page

@@ -10,13 +10,13 @@ import 'package:zion_link/core/services/crud/apartment_service.dart';
 import 'package:zion_link/core/services/crud/expense_service.dart';
 import 'package:zion_link/core/services/crud/payment_service.dart';
 import 'package:zion_link/features/payments/apartment_payments_view.dart';
-import 'package:zion_link/features/apartments/add_apartment_dialog.dart';
+import 'package:zion_link/features/apartments/edit_user_details.dart';
 import 'package:zion_link/shared/widgets/apartment_row.dart';
 import 'package:zion_link/features/buildings/edit_building_details_dialog.dart';
 import 'package:zion_link/features/buildings/delete_building_button.dart';
 import 'package:zion_link/features/expenses/expense_report_dialog.dart';
 // import 'package:zion_link/shared/widgets/edit_apartment_dialog.dart';
-import 'package:zion_link/features/reports/report_generator_button.dart';
+import 'package:zion_link/features/receipts_and_reports/report_generator_button.dart';
 
 // StatefulWidget for displaying detailed view of a building
 class BuildingsDetailsScreen extends StatefulWidget {
@@ -292,7 +292,7 @@ class _BuildingsDetailsScreenState extends State<BuildingsDetailsScreen> {
                 setState(() {});
               },
             ),
-            title: Text('${apartment.attendantName} - דירה'),
+            title: Text('${apartment.tenantId} - דירה'),
           ),
           body: ApartmentPaymentsView(apartment: apartment),
         ),
@@ -326,13 +326,7 @@ class _BuildingsDetailsScreenState extends State<BuildingsDetailsScreen> {
             },
           ),
           AllPaymentsView(building: _building),
-          AddApartmentDialog(
-              buildingId: _building.id,
-              onAdd: (Apartment newApartment) async {
-                await _apartmentService.createApartment(newApartment);
-                apartments.add(newApartment);
-                setState(() {});
-              }),
+          EditUserDetails(buildingId: _building.id),
           AllExpensesButton(buildingId: _building.id),
           ReportGeneratorButton(building: _building),
           DeleteBuildingButton(buildingID: _building.id),

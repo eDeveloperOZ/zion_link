@@ -6,7 +6,7 @@ import 'package:zion_link/core/services/crud/payment_service.dart';
 import 'package:zion_link/core/services/crud/building_service.dart';
 import 'package:zion_link/shared/widgets/delete_button.dart';
 import 'package:zion_link/shared/widgets/success_message_widget.dart';
-import 'package:zion_link/features/payments/receipt_view.dart';
+import 'package:zion_link/features/receipts_and_reports/receipt_view.dart';
 import 'package:zion_link/shared/widgets/error_message_widget.dart';
 
 class ApartmentPaymentsView extends StatefulWidget {
@@ -224,7 +224,7 @@ class _ApartmentPaymentsViewState extends State<ApartmentPaymentsView> {
                       IconButton(
                         icon: Icon(Icons.receipt),
                         onPressed: () async {
-                          final attendantName = widget.apartment.attendantName;
+                          final tenantName = widget.apartment.tenantId;
                           final buildingId = widget.apartment.buildingId;
                           final building = await _buildingService
                               .readBuildingById(buildingId);
@@ -233,7 +233,7 @@ class _ApartmentPaymentsViewState extends State<ApartmentPaymentsView> {
                             builder: (BuildContext context) {
                               return ReceiptView(
                                 payment: payment,
-                                attendantName: attendantName,
+                                tenantName: tenantName,
                                 buildingAddress: building.address,
                               );
                             },

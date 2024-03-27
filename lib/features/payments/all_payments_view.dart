@@ -173,8 +173,8 @@ class _BuildingPaymentsViewState extends State<BuildingPaymentsView> {
               itemBuilder: (context, index) {
                 final apartment = apartments[index];
                 return ExpansionTile(
-                  title: Text(
-                      'דירה ${apartment.number} - ${apartment.attendantName}'),
+                  title:
+                      Text('דירה ${apartment.number} - ${apartment.tenantId}'),
                   children: [
                     ApartmentPaymentsView(
                       apartment: apartment,

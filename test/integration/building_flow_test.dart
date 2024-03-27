@@ -32,7 +32,7 @@
 //               buildingId: 'testBuildingId',
 //               number: '101',
 //               ownerName: 'Owner 101',
-//               attendantName: 'Attendant 101',
+//               tenantName: 'Tenant 101',
 //               yearlyPaymentAmount: 1000,
 //               payments: []));
 //       await tester.pumpWidget(MaterialApp(

@@ -13,6 +13,7 @@ enum UserType {
 /// It is designed to be compatible across iOS, Android, PC, macOS, and web platforms.
 class User {
   final String id;
+  final String? ApartmentId;
   final String firstName;
   final String? lastName; // nullable - optional
   final String email;
@@ -27,6 +28,7 @@ class User {
   /// Constructor for creating a [User] instance.
   User({
     required this.id,
+    this.ApartmentId,
     required this.firstName,
     this.lastName,
     required this.email,
@@ -45,7 +47,7 @@ class User {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'firstName': firstName,
+      'ApartmentId': ApartmentId,
       'lastName': lastName,
       'email': email,
       'phoneNumber': phoneNumber,
@@ -64,6 +66,7 @@ class User {
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
       id: json['id'],
+      ApartmentId: json['ApartmentId'],
       firstName: json['firstName'],
       lastName: json['lastName'],
       email: json['email'],

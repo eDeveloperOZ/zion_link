@@ -8,8 +8,8 @@ void main() {
         id: '1',
         buildingId: '1',
         number: '1',
-        ownerName: 'owner',
-        attendantName: 'attendant',
+        ownerId: 'owner',
+        tenantId: 'attendant',
         yearlyPaymentAmount: 1000,
         payments: [],
       );
@@ -17,8 +17,8 @@ void main() {
       expect(apartment.id, '1');
       expect(apartment.buildingId, '1');
       expect(apartment.number, '1');
-      expect(apartment.ownerName, 'owner');
-      expect(apartment.attendantName, 'attendant');
+      expect(apartment.ownerId, 'owner');
+      expect(apartment.tenantId, 'attendant');
       expect(apartment.yearlyPaymentAmount, 1000);
       expect(apartment.payments, []);
     });

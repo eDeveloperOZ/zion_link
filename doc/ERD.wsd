@@ -31,9 +31,10 @@ entity "UserBuildingAssociation" as UserBuildingAssociation {
 entity "Apartment" as Apartment {
   +id : String {PK}
   buildingId : String {FK}
+  userId : String {FK}
   number : String
   ownerName : String
-  attendantName : String {optional}
+  tenantName : String {optional}
   yearlyPaymentAmount : double
 }
 
@@ -73,6 +74,7 @@ User "1" --> "*" UserBuildingAssociation : users
 Building "1" --> "*" UserBuildingAssociation : buildings
 Building "1" --> "*" Apartment : apartments
 Apartment "1" --> "*" Payment : payments
+Apartment "1" --> "*" User : users
 Building "1" --> "*" Expense : expenses
 
 @enduml
