@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'views/dashboard_screen.dart';
+import 'package:zion_link/views/sign_in_screen.dart'; // Update import
 
 class App extends StatelessWidget {
   @override
@@ -22,9 +22,8 @@ class App extends StatelessWidget {
           primarySwatch: Colors.blue,
           visualDensity: VisualDensity.adaptivePlatformDensity,
         ),
-        home: DashboardScreen(), // Set the initial route or home screen
-        // Define other routes here if necessary
-      ), // Close the MaterialApp widget
-    ); // Close the Directionality widget
+        home: SignInScreen(), // Set SignInScreen as the initial route
+      ),
+    );
   }
 }
