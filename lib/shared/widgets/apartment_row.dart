@@ -32,26 +32,16 @@ class ApartmentRow extends StatefulWidget {
   _ApartmentRowState createState() => _ApartmentRowState();
 }
 
-class _ApartmentRowState extends State<ApartmentRow>
-    with SingleTickerProviderStateMixin {
+class _ApartmentRowState extends State<ApartmentRow> {
   final PaymentService _paymentService = PaymentService();
   final UserService _userService = UserService();
   Future<User?>? _tenantFuture;
   Future<User?>? _ownerFuture;
-  TabController? _tabController;
 
   @override
   void initState() {
     super.initState();
     _fetchTenantAndOwner();
-    _tabController = TabController(length: 3, vsync: this);
-  }
-
-  @override
-  void dispose() {
-    _tabController?.dispose();
-    // Cancel any ongoing asynchronous operations or subscriptions here
-    super.dispose();
   }
 
   void _fetchTenantAndOwner() {
@@ -67,90 +57,61 @@ class _ApartmentRowState extends State<ApartmentRow>
     } else {
       _ownerFuture = Future.value();
     }
+
+    setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
-    return _buildResponsiveLayout(context);
-  }
-
-  Widget _buildResponsiveLayout(BuildContext context) {
-    double screenWidth = MediaQuery.of(context).size.width;
-
-    if (screenWidth < 600) {
-      return TabBarView(
-        controller: _tabController,
-        children: [
-          ApartmentDetailsWidget(
-              apartment: widget.apartment,
-              tenant: widget.tenant ?? User.empty(),
-              owner: widget.owner,
-              onUserTap: _handleUserTap),
-          PaymentDetailsWidget(
-              future: _paymentService
-                  .readAllPaymentsForApartment(widget.apartment.id),
-              yearlyPaymentAmount: widget.apartment.yearlyPaymentAmount),
-          // Add more tabs as needed
-        ],
-      );
-    } else {
-      return _buildApartmentRow(context);
-    }
-  }
-
-  Widget _buildApartmentRow(BuildContext context) {
-    double screenWidth = MediaQuery.of(context).size.width;
-
     return ListTile(
-      title: screenWidth > 600
-          ? Row(
-              children: _buildRowChildren(context, screenWidth),
-            )
-          : ListView(
-              scrollDirection: Axis.horizontal,
-              children: _buildRowChildren(context, screenWidth),
+      title: Row(
+        children: [
+          Expanded(
+            child: FutureBuilder<List<User?>>(
+              future: Future.wait([_tenantFuture!, _ownerFuture!]),
+              builder: (context, snapshot) {
+                if (snapshot.hasData) {
+                  final tenant = snapshot.data![0];
+                  final owner = snapshot.data![1];
+                  return ApartmentDetailsWidget(
+                    apartment: widget.apartment,
+                    tenant: tenant,
+                    owner: owner,
+                    onUserTap: _handleUserTap,
+                  );
+                } else if (snapshot.hasError) {
+                  return Text('Error: ${snapshot.error}');
+                }
+                return CircularProgressIndicator();
+              },
             ),
+          ),
+          Tooltip(
+            message: 'צפה בתשלומים',
+            child: GestureDetector(
+              onTap: () => _showPayments(context),
+              child: PaymentDetailsWidget(
+                future: _paymentService
+                    .readAllPaymentsForApartment(widget.apartment.id),
+                yearlyPaymentAmount: widget.apartment.yearlyPaymentAmount,
+              ),
+            ),
+          ),
+          GestureDetector(
+            onTap: _handleReportPaymentTap,
+            child: Tooltip(
+              message: 'דווח תשלום',
+              child: Row(
+                children: [
+                  Icon(Icons.attach_money),
+                  Text('דווח', style: TextStyle(fontSize: 20)),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
-  }
-
-  List<Widget> _buildRowChildren(BuildContext context, double screenWidth) {
-    double fontSize = screenWidth > 600 ? 25 : 20;
-
-    return [
-      Expanded(
-        child: ApartmentDetailsWidget(
-          apartment: widget.apartment,
-          tenant: widget.tenant ?? User.empty(),
-          owner: widget.owner,
-          onUserTap: _handleUserTap,
-        ),
-      ),
-      Expanded(
-        child: Tooltip(
-          message: 'צפה בתשלומים',
-          child: GestureDetector(
-            onTap: () => _showPayments(context),
-            child: PaymentDetailsWidget(
-              future: _paymentService
-                  .readAllPaymentsForApartment(widget.apartment.id),
-              yearlyPaymentAmount: widget.apartment.yearlyPaymentAmount,
-            ),
-          ),
-        ),
-      ),
-      GestureDetector(
-        onTap: _handleReportPaymentTap,
-        child: Tooltip(
-          message: 'דווח תשלום',
-          child: Row(
-            children: [
-              Icon(Icons.attach_money),
-              Text('דווח', style: TextStyle(fontSize: fontSize)),
-            ],
-          ),
-        ),
-      ),
-    ];
   }
 
   void _showPayments(BuildContext context) async {
