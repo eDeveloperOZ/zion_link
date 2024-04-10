@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:zion_link/features/expenses/all_expenses_view.dart';
+import 'package:tachles/features/expenses/all_expenses_view.dart';
 
 /// A widget that, when tapped, navigates to the AllExpensesView.
 ///
@@ -24,13 +24,13 @@ class AllExpensesButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      mainAxisSize: MainAxisSize.min,
+      mainAxisSize: MainAxisSize.max,
       children: [
         IconButton(
           icon: const Icon(Icons.show_chart, size: 24),
           onPressed: () => _navigateToAllExpensesView(context, buildingId),
         ),
-        Text('כל ההוצאות'),
+        Text(' כל ההוצאות'),
       ],
     );
   }

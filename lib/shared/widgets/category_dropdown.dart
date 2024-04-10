@@ -1,24 +1,41 @@
 import 'package:flutter/material.dart';
 
 class CategoryDropdown extends StatelessWidget {
-  final List<String> categories;
+  final List<String>? categories;
   final String? selectedCategory;
+  final bool isUtility;
   final Function(String?) onSelectCategory;
 
-  const CategoryDropdown({
+  final List<String> serviceProviders = ['חשמלאי', 'אינסטלטור', 'אחר...'];
+  final List<String> utilities = ['מים', 'ארנונה', 'אחר...'];
+
+  CategoryDropdown({
     Key? key,
-    required this.categories,
-    required this.selectedCategory,
+    this.categories,
+    this.selectedCategory,
     required this.onSelectCategory,
-  }) : super(key: key);
+    required this.isUtility,
+  }) : super(key: key) {
+    if (categories != null) {
+      if (isUtility) {
+        utilities.addAll(categories!);
+      } else {
+        serviceProviders.addAll(categories!);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final actualCategories = isUtility ? utilities : serviceProviders;
+
+    final actualValue =
+        actualCategories.contains(selectedCategory) ? selectedCategory : null;
+
     return DropdownButtonFormField<String>(
-      value: selectedCategory,
+      value: actualValue,
       hint: Text('בחר קטגוריה'),
       onChanged: (String? newValue) {
-        print('Dropdown onChanged - newValue: $newValue');
         if (newValue == 'אחר...') {
           showDialog<String>(
             context: context,
@@ -36,16 +53,13 @@ class CategoryDropdown extends StatelessWidget {
           ).then((String? value) {
             if (value != null) {
               onSelectCategory(value);
-              print('After custom category dialog - selectedCategory: $value');
             }
           });
         } else {
-          print(
-              'Inside Dropdown onChanged - selectedCategory updated to: $newValue');
           onSelectCategory(newValue);
         }
       },
-      items: categories.map<DropdownMenuItem<String>>((String value) {
+      items: actualCategories.map<DropdownMenuItem<String>>((String value) {
         return DropdownMenuItem<String>(
           value: value,
           child: Text(value),

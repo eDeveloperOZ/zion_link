@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:zion_link/core/models/expense.dart';
-import 'package:zion_link/core/services/crud/expense_service.dart';
-import 'package:zion_link/features/expenses/edit_expense_view.dart';
-import 'package:zion_link/shared/widgets/delete_button.dart';
-import 'package:zion_link/shared/widgets/display_document_widget.dart';
+import 'package:tachles/core/models/expense.dart';
+import 'package:tachles/core/services/crud/expense_service.dart';
+import 'package:tachles/features/expenses/edit_expense_view.dart';
+import 'package:tachles/shared/widgets/delete_button.dart';
+import 'package:tachles/shared/widgets/display_document_widget.dart';
 
 class AllExpensesView extends StatefulWidget {
   // TODO: change to AllExpensesScreen

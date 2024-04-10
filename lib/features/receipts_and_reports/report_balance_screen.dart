@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:zion_link/core/models/building.dart';
-import 'package:zion_link/core/models/expense.dart';
-import 'package:zion_link/core/models/payment.dart';
-import 'package:zion_link/core/services/crud/expense_service.dart';
-import 'package:zion_link/core/services/crud/payment_service.dart';
-import 'package:zion_link/core/services/crud/apartment_service.dart';
-import 'package:zion_link/core/services/file_upload_service.dart';
+import 'package:tachles/core/models/building.dart';
+import 'package:tachles/core/models/expense.dart';
+import 'package:tachles/core/models/payment.dart';
+import 'package:tachles/core/services/crud/expense_service.dart';
+import 'package:tachles/core/services/crud/payment_service.dart';
+import 'package:tachles/core/services/crud/apartment_service.dart';
+import 'package:tachles/core/services/file_upload_service.dart';
 
 /// Displays a report of payments and expenses for a specific building.
 class ReportBalanceScreen extends StatelessWidget {

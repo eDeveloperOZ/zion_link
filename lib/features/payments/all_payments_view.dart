@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:zion_link/core/models/building.dart';
-import 'package:zion_link/core/models/apartment.dart';
-import 'package:zion_link/core/services/crud/apartment_service.dart';
-import 'package:zion_link/features/payments/apartment_payments_view.dart';
+import 'package:tachles/core/models/building.dart';
+import 'package:tachles/core/models/apartment.dart';
+import 'package:tachles/core/models/user.dart';
+import 'package:tachles/core/services/crud/apartment_service.dart';
+import 'package:tachles/core/services/crud/user_service.dart';
+import 'package:tachles/features/payments/apartment_payments_view.dart';
 
 class AllPaymentsView extends StatefulWidget {
   final Building building;
@@ -17,7 +19,7 @@ class _AllPaymentsViewState extends State<AllPaymentsView> {
   @override
   Widget build(BuildContext context) {
     return Column(
-      mainAxisSize: MainAxisSize.min,
+      mainAxisSize: MainAxisSize.max,
       children: [
         IconButton(
           icon: const Icon(Icons.manage_accounts, size: 24),
@@ -31,7 +33,7 @@ class _AllPaymentsViewState extends State<AllPaymentsView> {
             );
           },
         ),
-        Text('כל התשלומים'),
+        Text(' כל התשלומים'),
       ],
     );
   }
@@ -50,6 +52,7 @@ class BuildingPaymentsView extends StatefulWidget {
 class _BuildingPaymentsViewState extends State<BuildingPaymentsView> {
   Apartment? selectedApartment;
   String? selectedFilter = 'all';
+  UserService userService = UserService();
 
   Widget _buildFilterDropdown() {
     return BottomNavigationBar(
@@ -159,22 +162,27 @@ class _BuildingPaymentsViewState extends State<BuildingPaymentsView> {
         title: Text('${widget.building.name} - תשלומים'),
       ),
       body: FutureBuilder(
-        future:
-            apartmentService.readAllApartmentsForBuilding(widget.building.id),
+        future: Future.wait([
+          apartmentService.readAllApartmentsForBuilding(widget.building.id),
+          userService.readAllUsersForBuilding(widget.building.id)
+        ]),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return CircularProgressIndicator();
           } else if (snapshot.hasError) {
             return Text('Error: ${snapshot.error}');
           } else {
-            List<Apartment> apartments = snapshot.data as List<Apartment>;
+            List<Apartment> apartments = snapshot.data![0] as List<Apartment>;
+            List<User> users = snapshot.data![1] as List<User>;
             return ListView.builder(
               itemCount: apartments.length,
               itemBuilder: (context, index) {
                 final apartment = apartments[index];
+                final tenant = users.firstWhere(
+                    (user) => user.id == apartment.tenantId,
+                    orElse: () => User.empty());
                 return ExpansionTile(
-                  title:
-                      Text('דירה ${apartment.number} - ${apartment.tenantId}'),
+                  title: Text('דירה ${apartment.number} - ${tenant.firstName}'),
                   children: [
                     ApartmentPaymentsView(
                       apartment: apartment,

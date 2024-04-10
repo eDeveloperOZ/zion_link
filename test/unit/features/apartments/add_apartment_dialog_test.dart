@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:zion_link/core/models/apartment.dart';
-import 'package:zion_link/features/apartments/add_apartment_dialog.dart';
+import 'package:tachles/core/models/apartment.dart';
+import 'package:tachles/features/apartments/add_apartment_dialog.dart';
 
 void main() {
   group('AddApartmentDialog', () {

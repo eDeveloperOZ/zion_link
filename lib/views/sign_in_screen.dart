@@ -1,35 +1,86 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:zion_link/views/dashboard_screen.dart';
-import 'package:zion_link/core/services/sign_in_service.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:tachles/core/services/crud/user_service.dart';
+import 'package:tachles/views/dashboard_screen.dart';
+import 'package:tachles/core/services/sign_in_service.dart';
+import 'package:tachles/core/models/user.dart' as tachles;
+// import 'package:tachles/core/utils/logger.dart';
+import 'package:tachles/shared/widgets/error_message_widget.dart';
 
+enum UserType {
+  admin,
+  owner,
+  management,
+  tenant,
+  routineServiceProvider,
+  onCallServiceProvider
+}
+
+/// SignInScreen provides a UI for users to sign in.
+///
+/// It includes text fields for entering username and password, and buttons for sign in and registration.
+/// Upon successful sign in, it navigates to the DashboardView.
 class SignInScreen extends StatefulWidget {
   @override
   _SignInScreenState createState() => _SignInScreenState();
 }
 
 class _SignInScreenState extends State<SignInScreen> {
+  final UserService _userService = UserService();
   final TextEditingController _emailOrUsernameController =
+      // TextEditingController(text: 'Ofiroz91@gmail.com');
+      // TextEditingController(text: 'anat.m.levari@gmail.com');
       TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final SignInService _signInService = SignInService();
 
+  /// Attempts to sign in the user using the provided email and password.
+  ///
+  /// On success, navigates to the DashboardView. On failure, displays an error message.
   void _signIn() async {
     final email = _emailOrUsernameController.text;
     final password = _passwordController.text;
-    final signInSuccess = await _signInService.signIn(email, password);
+    try {
+      final signInSuccess = await _signInService.signIn(email, password);
+      if (signInSuccess) {
+        final userExists = await _userService
+            .getUserById(Supabase.instance.client.auth.currentUser!.id);
+        if (userExists == null) {
+          // create a new user
 
-    if (signInSuccess) {
-      Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (context) => DashboardScreen()));
-    } else {
+          tachles.User user = tachles.User.empty(
+            id: Supabase.instance.client.auth.currentUser!.id,
+            email: email,
+            role: tachles.UserType.management,
+            buildingId: "",
+          );
+          await UserService.createUser(user, "");
+        }
+        Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+                builder: (context) =>
+                    DashboardScreen())); // Navigate to DashboardView
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(ErrorMessageWidget.create(
+          message: 'יש מצב שהסיסמא שגויה? דבר איתנו אם ניסית כמה וכמה פעמים',
+        ));
+      }
+    } on AuthException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Sign-in failed'),
+        content: Text('Sign-in failed: ${e.message}'),
+        backgroundColor: Colors.red,
+      ));
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('An unexpected error occurred'),
         backgroundColor: Colors.red,
       ));
     }
   }
 
+  /// Displays a sign-up alert dialog with contact information.
   void _showSignUpAlert() {
     showDialog(
       context: context,

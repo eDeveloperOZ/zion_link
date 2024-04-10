@@ -1,41 +1,42 @@
-import 'package:zion_link/core/models/building.dart';
-import 'package:zion_link/core/models/user.dart';
-import 'package:zion_link/core/services/storage_service.dart';
-import 'user_building_association_service.dart';
-import 'user_service.dart';
+import 'package:tachles/core/models/building.dart';
+import 'package:uuid/uuid.dart';
+import 'package:tachles/core/models/user.dart';
+import 'package:tachles/core/models/user_building_association.dart';
+import 'package:tachles/core/services/supabase_service.dart';
 
 class BuildingService {
+  final SupabaseService supabaseService = SupabaseService();
+
   Future<List<Building>> readAllBuildings() async {
-    final buildingsFromFile = await StorageService.readAllBuildings();
-    return buildingsFromFile;
+    return await supabaseService.readAll<Building>();
   }
 
-  Future<Building> readBuildingById(String buildingId) async {
-    final Building building = await StorageService.readBuildingById(buildingId);
-    return building;
+  Future<Building?> getBuildingById(String buildingId) async {
+    return await supabaseService.readById<Building>(buildingId);
   }
 
-  Future<void> createBuilding(Building newBuilding) async {
-    await StorageService.createBuilding(newBuilding);
+  Future<void> createBuilding(Building newBuilding, String userId) async {
+    await supabaseService.create<Building>(newBuilding);
+    await supabaseService.create<UserBuildingAssociation>(
+        UserBuildingAssociation(
+            ubaId: const Uuid().v4(),
+            userId: userId,
+            buildingId: newBuilding.id,
+            role: UserType.management));
   }
 
   Future<void> updateBuilding(Building updatedBuilding) async {
-    await StorageService.updateBuilding(updatedBuilding);
+    await supabaseService.update<Building>(updatedBuilding);
   }
 
   Future<void> deleteBuilding(String buildingId) async {
-    await StorageService.deleteBuilding(buildingId);
-  }
-
-  Future<List<User>> getUsersForBuilding(String buildingId) async {
-    final associationService = UserBuildingAssociationService();
-    final associations =
-        await associationService.getAssociationsByBuildingId(buildingId);
-    final userIds =
-        associations.map((association) => association.userId).toList();
-    final userService = UserService();
-    final users = await Future.wait(
-        userIds.map((userId) => userService.getUserById(userId)));
-    return users.whereType<User>().toList();
+    try {
+      // Delete associated records in the user_building_associations table
+      await supabaseService.deleteWhere<UserBuildingAssociation>(
+          'buildingId', buildingId);
+      await supabaseService.delete<Building>(buildingId);
+    } catch (error) {
+      rethrow;
+    }
   }
 }

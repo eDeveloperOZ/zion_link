@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:zion_link/core/models/building.dart';
-import 'package:zion_link/core/models/apartment.dart';
-import 'package:zion_link/core/models/payment.dart';
-import 'package:zion_link/features/receipts_and_reports/receipt_view.dart';
-import 'package:zion_link/core/services/crud/apartment_service.dart';
-import 'package:zion_link/core/services/crud/payment_service.dart';
+import 'package:tachles/core/models/building.dart';
+import 'package:tachles/core/models/apartment.dart';
+import 'package:tachles/core/models/payment.dart';
+import 'package:tachles/features/receipts_and_reports/receipt_view.dart';
+import 'package:tachles/core/services/crud/apartment_service.dart';
+import 'package:tachles/core/services/crud/payment_service.dart';
 
 class ReceiptDetailsScreen extends StatefulWidget {
   final Building building;

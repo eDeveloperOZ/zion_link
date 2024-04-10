@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:zion_link/core/models/building.dart';
-import 'package:zion_link/features/receipts_and_reports/report_balance_screen.dart';
+import 'package:tachles/core/models/building.dart';
+import 'package:tachles/features/receipts_and_reports/report_balance_screen.dart';
 
 class ReportBalanceButton extends StatelessWidget {
   final Building building;

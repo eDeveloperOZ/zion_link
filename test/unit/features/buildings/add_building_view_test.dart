@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
-import 'package:zion_link/core/models/building.dart';
-import 'package:zion_link/core/services/crud/building_service.dart';
-import 'package:zion_link/features/buildings/add_building_view.dart';
+import 'package:tachles/core/models/building.dart';
+import 'package:tachles/core/services/crud/building_service.dart';
+import 'package:tachles/features/buildings/add_building_view.dart';
 
 class MockBuildingService extends Mock implements BuildingService {}
 

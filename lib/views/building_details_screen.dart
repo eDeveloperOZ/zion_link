@@ -1,30 +1,26 @@
 import 'package:flutter/material.dart';
-import 'package:zion_link/features/expenses/all_expenses_button.dart';
-import 'package:zion_link/features/payments/all_payments_view.dart';
-import 'package:zion_link/core/models/building.dart';
-import 'package:zion_link/core/models/expense.dart';
-import 'package:zion_link/core/models/apartment.dart';
-import 'package:zion_link/core/models/payment.dart';
-import 'package:zion_link/core/services/crud/building_service.dart';
-import 'package:zion_link/core/services/crud/apartment_service.dart';
-import 'package:zion_link/core/services/crud/expense_service.dart';
-import 'package:zion_link/core/services/crud/payment_service.dart';
-import 'package:zion_link/features/payments/apartment_payments_view.dart';
-import 'package:zion_link/features/apartments/edit_user_details.dart';
-import 'package:zion_link/shared/widgets/apartment_row.dart';
-import 'package:zion_link/features/buildings/edit_building_details_dialog.dart';
-import 'package:zion_link/features/buildings/delete_building_button.dart';
-import 'package:zion_link/features/expenses/expense_report_dialog.dart';
-// import 'package:zion_link/shared/widgets/edit_apartment_dialog.dart';
-import 'package:zion_link/features/receipts_and_reports/report_generator_button.dart';
+import 'package:tachles/features/expenses/all_expenses_button.dart';
+import 'package:tachles/features/payments/all_payments_view.dart';
+import 'package:tachles/core/models/building.dart';
+import 'package:tachles/core/models/expense.dart';
+import 'package:tachles/core/models/apartment.dart';
+import 'package:tachles/core/models/payment.dart';
+import 'package:tachles/core/services/crud/building_service.dart';
+import 'package:tachles/core/services/crud/apartment_service.dart';
+import 'package:tachles/core/services/crud/expense_service.dart';
+import 'package:tachles/core/services/crud/payment_service.dart';
+import 'package:tachles/features/payments/apartment_payments_view.dart';
+import 'package:tachles/features/users/service_provider_details_screen.dart';
+import 'package:tachles/shared/widgets/apartment_row.dart';
+import 'package:tachles/features/buildings/edit_building_details_dialog.dart';
+import 'package:tachles/features/buildings/delete_building_button.dart';
+import 'package:tachles/features/expenses/expense_report_dialog.dart';
+import 'package:tachles/features/receipts_and_reports/report_generator_button.dart';
 
-// StatefulWidget for displaying detailed view of a building
 class BuildingsDetailsScreen extends StatefulWidget {
   final Building building;
-  // Constructor requiring all the properties to be initialized
-  BuildingsDetailsScreen({
-    required this.building, // Initialize in constructor
-  });
+
+  BuildingsDetailsScreen({required this.building});
 
   @override
   State<BuildingsDetailsScreen> createState() => _BuildingsDetailsScreenState();
@@ -44,141 +40,64 @@ class _BuildingsDetailsScreenState extends State<BuildingsDetailsScreen> {
   }
 
   void _onPaymentReported(Apartment updatedApartment) async {
-    ApartmentService apartmentService = ApartmentService();
-
     setState(() {
-      apartmentService.updateApartment(updatedApartment);
+      _apartmentService.updateApartment(updatedApartment);
     });
   }
 
   void _onExpenseReported(Expense addedExpense) async {
-    Building updatedBuilding =
-        await BuildingService().readBuildingById(_building.id);
-    setState(() {
-      _building = updatedBuilding;
-    });
+    try {
+      Building? updatedBuilding =
+          await _buildingService.getBuildingById(_building.id);
+      setState(() {
+        _building = updatedBuilding ?? _building;
+      });
+    } catch (e) {
+      // Handle error and show appropriate message
+      print('Failed to update building: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to update building')),
+      );
+    }
   }
 
-  /// Calculates the total balance for a given building.
-  ///
-  /// This function asynchronously fetches the total balance by summing up all the expenses and payments
-  /// associated with the building. It ensures compatibility across iOS, Android, PC, macOS, and web platforms.
-  ///
-  /// Returns a [Future<double>] representing the total balance.
   Future<double> _calculateTotalBalance(String buildingId) async {
     double totalPayments = 0;
     double totalExpenses = 0;
-    // Fetch expenses for the building
-    List<Expense> expenses =
-        await _expenseService.readAllExpensesForBuilding(buildingId);
-    expenses.forEach((expense) {
-      totalExpenses += expense.amount;
-    });
 
-    List<Apartment> apartments =
-        await _apartmentService.readAllApartmentsForBuilding(buildingId);
-
-    // Fetch payments to calculate
-    for (Apartment apartment in apartments) {
-      List<Payment> payments =
-          await _paymentService.readAllPaymentsForApartment(apartment.id);
-      payments.forEach((payment) {
-        if (payment.isConfirmed) {
-          // Only add amount if the payment is confirmed
-          totalPayments += payment.amount;
-        }
+    try {
+      List<Expense> expenses =
+          await _expenseService.readAllExpensesForBuilding(buildingId);
+      expenses.forEach((expense) {
+        totalExpenses += expense.amount;
       });
+
+      List<Apartment> apartments =
+          await _apartmentService.readAllApartmentsForBuilding(buildingId);
+
+      for (Apartment apartment in apartments) {
+        List<Payment> payments =
+            await _paymentService.readAllPaymentsForApartment(apartment.id);
+        payments.forEach((payment) {
+          if (payment.isConfirmed) {
+            totalPayments += payment.amount;
+          }
+        });
+      }
+
+      double totalBalance = totalPayments - totalExpenses + _building.balance;
+      return totalBalance;
+    } catch (e) {
+      // Handle error and show appropriate message
+      print('Failed to calculate total balance: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to calculate total balance')),
+      );
+      return 0;
     }
-
-    // Calculate total balance
-    double totalBalance = totalPayments - totalExpenses + _building.balance;
-    return totalBalance;
-  }
-
-  AppBar _buildAppBar() {
-    return AppBar(
-      title: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: <Widget>[
-          Expanded(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  _building.name, // Building name
-                  textAlign: TextAlign.center,
-                ),
-                SizedBox(width: 10), // Space between name and balance
-                GestureDetector(
-                  onTap: () => _editBalance(context),
-                  child: Container(
-                    padding: EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4), // Padding for better touch area
-                    decoration: BoxDecoration(
-                      color: Colors.blue,
-                      borderRadius: BorderRadius.circular(
-                          20), // Rounded corners for the balance container
-                    ),
-                    child: FutureBuilder<double>(
-                      future: _calculateTotalBalance(_building.id),
-                      builder: (context, snapshot) {
-                        if (snapshot.hasData) {
-                          return Text(
-                            'יתרה נוכחית: ₪${snapshot.data!.toStringAsFixed(2)}',
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold),
-                            textAlign: TextAlign.center,
-                          );
-                        } else {
-                          return CircularProgressIndicator(); // Show loading indicator while waiting for data
-                        }
-                      },
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBalanceWidget(BuildContext context) {
-    return FutureBuilder<double>(
-      future: Future.value(
-          _building.balance), // Directly use the building's balance
-      builder: (context, snapshot) {
-        if (snapshot.hasData) {
-          return GestureDetector(
-            onTap: () => _editBalance(context),
-            child: Container(
-              width: 100,
-              height: 50,
-              decoration: BoxDecoration(
-                color: Colors.blue,
-                shape: BoxShape.circle,
-              ),
-              child: Center(
-                child: Text(
-                  '\$${snapshot.data!.toStringAsFixed(2)}',
-                  style: TextStyle(
-                      color: Colors.white, fontWeight: FontWeight.bold),
-                ),
-              ),
-            ),
-          );
-        } else {
-          return CircularProgressIndicator(); // Show loading indicator while waiting for data
-        }
-      },
-    );
   }
 
   Future<void> _editBalance(BuildContext context) async {
-    // Show dialog to input new balance
     final TextEditingController _controller = TextEditingController();
     final newBalance = await showDialog<double>(
       context: context,
@@ -189,8 +108,9 @@ class _BuildingsDetailsScreenState extends State<BuildingsDetailsScreen> {
             controller: _controller,
             keyboardType: TextInputType.numberWithOptions(decimal: true),
             decoration: InputDecoration(
-                hintText:
-                    "יתרת בניין נוכחית: \₪${_building.balance.toStringAsFixed(2)}"),
+              hintText:
+                  "יתרת בניין נוכחית: \₪${_building.balance.toStringAsFixed(2)}",
+            ),
           ),
           actions: <Widget>[
             TextButton(
@@ -214,70 +134,39 @@ class _BuildingsDetailsScreenState extends State<BuildingsDetailsScreen> {
       },
     );
 
-    // If newBalance is not null, update the building's balance
     if (newBalance != null) {
       setState(() {
         _building.balance = newBalance;
       });
-      await _buildingService.updateBuilding(_building);
-      // Refresh the UI to reflect the updated balance
-      _loadBuildingData();
+      try {
+        await _buildingService.updateBuilding(_building);
+        _loadBuildingData();
+      } catch (e) {
+        // Handle error and show appropriate message
+        print('Failed to update building balance: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to update building balance')),
+        );
+      }
     }
   }
 
   Future<void> _loadBuildingData() async {
-    Building updatedBuilding =
-        await _buildingService.readBuildingById(_building.id);
-    setState(() {
-      _building = updatedBuilding;
-    });
-  }
-
-  Future<Widget> _buildApartmentsListView(BuildContext context) async {
-    List<Apartment> apartments =
-        await _apartmentService.readAllApartmentsForBuilding(_building.id);
-    if (apartments.isEmpty) {
-      return Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Center(
-          child: Container(
-            padding: EdgeInsets.all(16.0),
-            decoration: BoxDecoration(
-              color: Colors.grey[200],
-              borderRadius: BorderRadius.circular(8.0),
-            ),
-            child: Text('אין דירות להצגה'),
-          ),
-        ),
+    try {
+      Building? updatedBuilding =
+          await _buildingService.getBuildingById(_building.id);
+      setState(() {
+        _building = updatedBuilding ?? _building;
+      });
+    } catch (e) {
+      // Handle error and show appropriate message
+      print('Failed to load building data: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to load building data')),
       );
     }
-
-    // Use ListView.builder for a list of apartments
-    return ListView.builder(
-      shrinkWrap: true,
-      physics:
-          NeverScrollableScrollPhysics(), // Prevents the ListView from scrolling
-      itemCount: apartments.length,
-      itemBuilder: (context, index) {
-        final apartment = apartments[index];
-        // Use ApartmentRow widget for each apartment
-        return ApartmentRow(
-          apartment: apartment,
-          onPaymentReported: _onPaymentReported,
-          onTap: () => _navigateToPaymentDetailView(context, apartment),
-          onApartmentUpdated: (updatedApartment) {
-            // Update the apartment in the building's list
-            setState(() {
-              _apartmentService.updateApartment(updatedApartment);
-              apartments[index] = updatedApartment;
-            });
-          },
-        );
-      },
-    );
   }
 
-  // Extracted method to navigate to the payment detail view
   Future<void> _navigateToPaymentDetailView(
       BuildContext context, Apartment apartment) async {
     final result = await Navigator.push(
@@ -303,77 +192,195 @@ class _BuildingsDetailsScreenState extends State<BuildingsDetailsScreen> {
     }
   }
 
-  Future<Widget> _buildBottomNavigationBar() async {
-    List<Apartment> apartments =
-        await _apartmentService.readAllApartmentsForBuilding(_building.id);
-    return BottomAppBar(
-      height: 90,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: <Widget>[
-          EditBuildingDetailsDialog(
-            building: _building,
-            onNameChanged: (newName) {
-              setState(() {
-                _building.name = newName;
-              });
-            },
-          ),
-          ExpenseReportDialog(
-            buildingId: _building.id,
-            onExpenseAdded: (Expense addedExpense) {
-              _onExpenseReported(addedExpense);
-            },
-          ),
-          AllPaymentsView(building: _building),
-          EditUserDetails(buildingId: _building.id),
-          AllExpensesButton(buildingId: _building.id),
-          ReportGeneratorButton(building: _building),
-          DeleteBuildingButton(buildingID: _building.id),
-        ],
+  @override
+  Widget build(BuildContext context) {
+    List<Widget> bottomBarItems = [
+      EditBuildingDetailsDialog(
+        building: _building,
+        onNameChanged: (newName) {
+          setState(() {
+            _building.name = newName;
+          });
+        },
       ),
+      ExpenseReportDialog(
+        buildingId: _building.id,
+        onExpenseAdded: _onExpenseReported,
+      ),
+      AllPaymentsView(building: _building),
+      ServiceProviderDetailsScreen(buildingId: _building.id),
+      AllExpensesButton(buildingId: _building.id),
+      ReportGeneratorButton(building: _building),
+      DeleteBuildingButton(buildingID: _building.id),
+    ];
+
+    return Scaffold(
+      appBar: _AppBarWidget(
+        building: _building,
+        editBalance: _editBalance,
+        calculateTotalBalance: _calculateTotalBalance,
+      ),
+      body: FutureBuilder<List<Apartment>>(
+        future: _apartmentService.readAllApartmentsForBuilding(_building.id),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.done) {
+            return _ApartmentsListView(
+              apartments: snapshot.data ?? [],
+              onPaymentReported: _onPaymentReported,
+              onApartmentUpdated: (updatedApartment) {
+                setState(() {
+                  _apartmentService.updateApartment(updatedApartment);
+                });
+              },
+              onTap: (apartment) =>
+                  _navigateToPaymentDetailView(context, apartment),
+            );
+          } else {
+            return Center(child: CircularProgressIndicator());
+          }
+        },
+      ),
+      bottomNavigationBar: _buildResponsiveBottomAppBar(bottomBarItems),
     );
   }
 
-  Future<Widget> _buildBody(BuildContext context) async {
+  Widget _buildResponsiveBottomAppBar(List<Widget> bottomBarItems) {
+    double totalItemsWidth = bottomBarItems.length * 100.0;
+    double screenWidth = MediaQuery.of(context).size.width;
+
     return SingleChildScrollView(
-      child: Column(
-        children: [
-          await _buildApartmentsListView(context),
+      scrollDirection: Axis.horizontal,
+      child: Container(
+        height: 90,
+        width: totalItemsWidth > screenWidth ? totalItemsWidth : screenWidth,
+        child: BottomAppBar(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: bottomBarItems,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ApartmentsListView extends StatelessWidget {
+  final List<Apartment> apartments;
+  final Function(Apartment) onPaymentReported;
+  final Function(Apartment) onApartmentUpdated;
+  final Function(Apartment) onTap;
+
+  const _ApartmentsListView({
+    required this.apartments,
+    required this.onPaymentReported,
+    required this.onApartmentUpdated,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (apartments.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Center(
+          child: Container(
+            padding: EdgeInsets.all(16.0),
+            decoration: BoxDecoration(
+              color: Colors.grey[200],
+              borderRadius: BorderRadius.circular(8.0),
+            ),
+            child: Text('אין דירות להצגה'),
+          ),
+        ),
+      );
+    }
+
+    return ListView.builder(
+      shrinkWrap: true,
+      itemCount: apartments.length,
+      itemBuilder: (context, index) {
+        final apartment = apartments[index];
+        return ApartmentRow(
+          apartment: apartment,
+          onPaymentReported: onPaymentReported,
+          onTap: () => onTap(apartment),
+          onApartmentUpdated: onApartmentUpdated,
+        );
+      },
+    );
+  }
+}
+
+class _AppBarWidget extends StatelessWidget implements PreferredSizeWidget {
+  final Building building;
+  final Function(BuildContext) editBalance;
+  final Future<double> Function(String) calculateTotalBalance;
+
+  _AppBarWidget({
+    required this.building,
+    required this.editBalance,
+    required this.calculateTotalBalance,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return AppBar(
+      title: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          Expanded(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  building.name,
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(width: 10),
+                GestureDetector(
+                  onTap: () => editBalance(context),
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.blue,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: FutureBuilder<double>(
+                      future: calculateTotalBalance(building.id),
+                      builder: (context, snapshot) {
+                        if (snapshot.hasData) {
+                          return Text(
+                            'יתרה נוכחית: ₪${snapshot.data!.toStringAsFixed(2)}',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            textAlign: TextAlign.center,
+                          );
+                        } else if (snapshot.hasError) {
+                          return Text(
+                            'Failed to calculate balance',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            textAlign: TextAlign.center,
+                          );
+                        } else {
+                          return CircularProgressIndicator();
+                        }
+                      },
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
   }
 
   @override
-  Widget build(BuildContext context) {
-    // Building the UI for the building detail view
-    return Scaffold(
-      appBar: _buildAppBar(),
-      body: FutureBuilder<Widget>(
-        future: _buildBody(context),
-        builder: (BuildContext context, AsyncSnapshot<Widget> snapshot) {
-          if (snapshot.connectionState == ConnectionState.done) {
-            return snapshot.data ??
-                Container(); // Return the built widget or an empty container if null
-          } else {
-            return Center(
-                child:
-                    CircularProgressIndicator()); // Show a loading spinner while waiting
-          }
-        },
-      ),
-      bottomNavigationBar: FutureBuilder<Widget>(
-        future: _buildBottomNavigationBar(),
-        builder: (BuildContext context, AsyncSnapshot<Widget> snapshot) {
-          if (snapshot.connectionState == ConnectionState.done) {
-            return snapshot.data ??
-                Container(); // Return the built widget or an empty container if null
-          } else {
-            return Container(); // Optionally, return an empty container or a placeholder widget
-          }
-        },
-      ),
-    );
-  }
+  Size get preferredSize => Size.fromHeight(kToolbarHeight);
 }
