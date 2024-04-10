@@ -1,11 +1,11 @@
 {
-    "name": "zion_link",
-    "short_name": "zion_link",
+    "name": "tachles",
+    "short_name": "tachles",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "Only do what is must!",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

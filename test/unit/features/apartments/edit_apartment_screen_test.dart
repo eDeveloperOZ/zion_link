@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:provider/provider.dart';
-import 'package:zion_link/core/models/apartment.dart';
-import 'package:zion_link/core/services/crud/apartment_service.dart';
-import 'package:zion_link/features/apartments/edit_apartment_screen.dart';
+import 'package:tachles/core/models/apartment.dart';
+import 'package:tachles/core/services/crud/apartment_service.dart';
+import 'package:tachles/features/apartments/edit_apartment_screen.dart';
 
 class MockApartmentService extends Mock implements ApartmentService {}
 

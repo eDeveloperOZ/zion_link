@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:zion_link/core/models/apartment.dart';
+import 'package:tachles/core/models/apartment.dart';
 
 void main() {
   group('Apartment', () {

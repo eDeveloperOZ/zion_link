@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:zion_link/views/sign_in_screen.dart'; // Update import
+import 'package:tachles/views/sign_in_screen.dart'; // Update import
 
 class App extends StatelessWidget {
   @override
@@ -17,7 +17,7 @@ class App extends StatelessWidget {
           GlobalWidgetsLocalizations.delegate,
           GlobalCupertinoLocalizations.delegate,
         ],
-        title: 'ISR_homes',
+        title: 'תכל׳ס',
         theme: ThemeData(
           primarySwatch: Colors.blue,
           visualDensity: VisualDensity.adaptivePlatformDensity,

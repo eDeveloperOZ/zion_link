@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:zion_link/core/models/apartment.dart';
+import 'package:tachles/core/models/apartment.dart';
 
 class ApartmentListView extends StatelessWidget {
   final List<Apartment> apartments;

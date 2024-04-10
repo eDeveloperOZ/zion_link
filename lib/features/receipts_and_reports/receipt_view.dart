@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:zion_link/core/models/payment.dart';
-import 'package:zion_link/core/services/file_upload_service.dart';
+import 'package:tachles/core/models/payment.dart';
+import 'package:tachles/core/services/file_upload_service.dart';
 
 class ReceiptView extends StatelessWidget {
   final Payment payment;

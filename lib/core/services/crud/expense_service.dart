@@ -1,30 +1,26 @@
-import 'building_service.dart';
-import 'package:zion_link/core/models/expense.dart';
-import 'package:zion_link/core/services/storage_service.dart';
+import 'package:tachles/core/models/expense.dart';
+import 'package:tachles/core/services/supabase_service.dart';
 
 class ExpenseService {
-  final BuildingService buildingService = BuildingService();
+  final SupabaseService supabaseService = SupabaseService();
 
   Future<List<Expense>> readAllExpensesForBuilding(String buildingId) async {
-    final expenses =
-        await StorageService.readAllExpensesForBuilding(buildingId);
-    return expenses;
+    return await supabaseService.readAllForBuilding<Expense>(buildingId);
   }
 
   Future<Expense?> readExpenseById(String expenseId) async {
-    final expenses = await StorageService.readAllExpensesForBuilding(expenseId);
-    return expenses.firstWhere((expense) => expense.id == expenseId);
+    return await supabaseService.readById<Expense>(expenseId);
   }
 
   Future<void> createExpense(Expense expense) async {
-    await StorageService.createExpense(expense);
+    await supabaseService.create<Expense>(expense);
   }
 
   Future<void> updateExpense(Expense updatedExpense) async {
-    await StorageService.updateExpense(updatedExpense);
+    await supabaseService.update<Expense>(updatedExpense);
   }
 
   Future<void> deleteExpense(String expenseId) async {
-    await StorageService.deleteExpense(expenseId);
+    await supabaseService.delete<Expense>(expenseId);
   }
 }

@@ -1,6 +1,6 @@
 // lib/widgets/edit_building_details_dialog.dart
 import 'package:flutter/material.dart';
-import 'package:zion_link/core/models/building.dart';
+import 'package:tachles/core/models/building.dart';
 
 class EditBuildingDetailsDialog extends StatelessWidget {
   final Building building;
@@ -15,7 +15,7 @@ class EditBuildingDetailsDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      mainAxisSize: MainAxisSize.min,
+      mainAxisSize: MainAxisSize.max,
       children: [
         IconButton(
           icon: Icon(Icons.home, size: 24),
@@ -26,7 +26,7 @@ class EditBuildingDetailsDialog extends StatelessWidget {
                 String tempName = building.name;
                 return AlertDialog(
                   title: Text(
-                    'עריכת פרטי בניין',
+                    ' עריכת פרטי בניין',
                     textAlign: TextAlign.center,
                   ),
                   content: TextField(

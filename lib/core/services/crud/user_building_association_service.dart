@@ -1,43 +1,42 @@
-import 'package:zion_link/core/models/user_building_association.dart';
-import 'package:zion_link/core/services/storage_service.dart';
+import 'package:tachles/core/models/user_building_association.dart';
+import 'package:tachles/core/services/supabase_service.dart';
 
 class UserBuildingAssociationService {
+  final SupabaseService supabaseService = SupabaseService(); // Added instance
+
   Future<List<UserBuildingAssociation>> getAllAssociations() async {
-    final associationsFromFile =
-        await StorageService.readAllUserBuildingAssociations();
-    return associationsFromFile
-        .map<UserBuildingAssociation>((item) =>
-            UserBuildingAssociation.fromJson(item as Map<String, dynamic>))
-        .toList();
+    return await supabaseService.readAll<UserBuildingAssociation>();
   }
 
   Future<void> addAssociation(UserBuildingAssociation newAssociation) async {
-    await StorageService.createUserBuildingAssociation(newAssociation);
+    await supabaseService.create<UserBuildingAssociation>(newAssociation);
   }
 
   Future<void> updateAssociation(
       UserBuildingAssociation updatedAssociation) async {
-    await StorageService.updateUserBuildingAssociation(updatedAssociation);
+    await supabaseService.update<UserBuildingAssociation>(updatedAssociation);
   }
 
   Future<void> deleteAssociation(String userId, String buildingId) async {
-    await StorageService.deleteUserBuildingAssociation(userId, buildingId);
+    // This operation might require custom logic to construct a unique identifier or filter
+    // Since SupabaseService doesn't directly support composite keys, you might need to implement a custom method in SupabaseService for this operation
+    // For example, you could fetch all associations and manually filter/delete the desired one
+    throw UnimplementedError("This operation requires custom implementation.");
   }
 
-  /// Retrieves all associations for a given building ID.
-  ///
-  /// This method fetches all user-building associations that match the provided building ID.
-  /// It ensures compatibility across iOS, Android, PC, macOS, and web platforms.
-  ///
-  /// Parameters:
-  /// - `buildingId`: The ID of the building for which associations are to be retrieved.
-  ///
-  /// Returns a list of [UserBuildingAssociation] instances that are associated with the given building ID.
   Future<List<UserBuildingAssociation>> getAssociationsByBuildingId(
       String buildingId) async {
     final associations = await getAllAssociations();
     return associations
         .where((association) => association.buildingId == buildingId)
+        .toList();
+  }
+
+  Future<List<UserBuildingAssociation>> getAssociationsByUserId(
+      String userId) async {
+    final associations = await getAllAssociations();
+    return associations
+        .where((association) => association.userId == userId)
         .toList();
   }
 }

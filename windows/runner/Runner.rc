@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "com.example" "\0"
-            VALUE "FileDescription", "zion_link" "\0"
+            VALUE "FileDescription", "tachles" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "zion_link" "\0"
+            VALUE "InternalName", "tachles" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2024 com.example. All rights reserved." "\0"
-            VALUE "OriginalFilename", "zion_link.exe" "\0"
-            VALUE "ProductName", "zion_link" "\0"
+            VALUE "OriginalFilename", "tachles.exe" "\0"
+            VALUE "ProductName", "tachles" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

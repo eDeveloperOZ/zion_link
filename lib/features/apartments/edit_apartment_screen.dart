@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:zion_link/core/models/apartment.dart';
-import 'package:zion_link/core/services/crud/apartment_service.dart';
+import 'package:tachles/core/models/apartment.dart';
+import 'package:tachles/core/services/crud/apartment_service.dart';
 
 class EditApartmentScreen extends StatefulWidget {
   final Apartment apartment;
@@ -46,7 +46,7 @@ class _EditApartmentScreenState extends State<EditApartmentScreen> {
       );
       ApartmentService().updateApartment(updatedApartment);
       widget.onApartmentUpdated(updatedApartment);
-      Navigator.of(context).pop();
+      Navigator.pop(context, updatedApartment);
     }
   }
 

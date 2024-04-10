@@ -43,7 +43,7 @@ class Payment {
       id: json['id'],
       apartmentId: json['apartmentId'],
       madeByName: json['madeByName'] ?? '',
-      amount: json['amount'],
+      amount: (json['amount'] as num).toDouble(),
       dateMade: DateTime.parse(json['dateMade']),
       periodCoverageStart: json['periodCoverageStart'] ?? '',
       periodCoverageEnd: json['periodCoverageEnd'] ?? '',

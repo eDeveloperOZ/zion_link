@@ -1,8 +1,8 @@
 // import 'package:flutter_test/flutter_test.dart';
 // import 'package:mockito/mockito.dart';
-// import 'package:zion_link/core/models/building.dart';
-// import 'package:zion_link/core/services/building_service.dart';
-// import 'package:zion_link/core/services/storage_service.dart';
+// import 'package:tachles/core/models/building.dart';
+// import 'package:tachles/core/services/building_service.dart';
+// import 'package:tachles/core/services/storage_service.dart';
 
 // class MockStorageService extends Mock implements StorageService {}
 
