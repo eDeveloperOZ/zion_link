@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:tachles/core/models/apartment.dart';
@@ -65,6 +66,7 @@ class _ApartmentRowState extends State<ApartmentRow> {
   Widget build(BuildContext context) {
     return ListTile(
       title: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Expanded(
             child: FutureBuilder<List<User?>>(
@@ -86,14 +88,16 @@ class _ApartmentRowState extends State<ApartmentRow> {
               },
             ),
           ),
-          Tooltip(
-            message: 'צפה בתשלומים',
-            child: GestureDetector(
-              onTap: () => _showPayments(context),
-              child: PaymentDetailsWidget(
-                future: _paymentService
-                    .readAllPaymentsForApartment(widget.apartment.id),
-                yearlyPaymentAmount: widget.apartment.yearlyPaymentAmount,
+          Expanded(
+            child: Tooltip(
+              message: 'צפה בתשלומים',
+              child: GestureDetector(
+                onTap: () => _showPayments(context),
+                child: PaymentDetailsWidget(
+                  future: _paymentService
+                      .readAllPaymentsForApartment(widget.apartment.id),
+                  yearlyPaymentAmount: widget.apartment.yearlyPaymentAmount,
+                ),
               ),
             ),
           ),
