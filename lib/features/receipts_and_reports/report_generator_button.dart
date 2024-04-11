@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:zion_link/core/models/building.dart';
-import 'package:zion_link/features/reports/report_generator_dialog.dart';
+import 'package:tachles/core/models/building.dart';
+import 'package:tachles/features/receipts_and_reports/report_generator_dialog.dart';
 
 class ReportGeneratorButton extends StatelessWidget {
   final Building building;
@@ -9,7 +9,7 @@ class ReportGeneratorButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      mainAxisSize: MainAxisSize.min,
+      mainAxisSize: MainAxisSize.max,
       children: [
         IconButton(
           icon: Icon(Icons.bar_chart, size: 24),
@@ -22,7 +22,7 @@ class ReportGeneratorButton extends StatelessWidget {
             );
           },
         ),
-        Text('צור דוח'), // Text under the icon
+        Text(' צור דוח'), // Text under the icon
       ],
     ); // Add a semicolon here
   }

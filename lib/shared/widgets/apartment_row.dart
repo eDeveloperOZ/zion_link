@@ -1,19 +1,25 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:zion_link/core/models/payment.dart';
-import 'package:zion_link/shared/widgets/error_message_widget.dart';
-import 'package:zion_link/core/models/apartment.dart';
-import 'package:zion_link/core/services/crud/payment_service.dart';
-import 'package:zion_link/features/payments/income_report_screen.dart';
-import 'package:zion_link/features/apartments/edit_apartment_screen.dart';
-import 'package:zion_link/features/payments/apartment_payments_view.dart';
+import 'package:tachles/core/models/apartment.dart';
+import 'package:tachles/core/models/payment.dart';
+import 'package:tachles/core/models/user.dart';
+import 'package:tachles/core/services/crud/payment_service.dart';
+import 'package:tachles/core/services/crud/user_service.dart';
+import 'package:tachles/features/payments/apartment_payments_view.dart';
+import 'package:tachles/features/payments/income_report_screen.dart';
+import 'package:tachles/features/users/create_user_dialog.dart';
+import 'package:tachles/features/users/edit_user_dialog.dart';
+import 'package:tachles/shared/widgets/apartment_details_widget.dart';
+import 'package:tachles/shared/widgets/error_message_widget.dart';
 
-// Convert ApartmentRow to StatefulWidget
 class ApartmentRow extends StatefulWidget {
   final Apartment apartment;
   final Function(Apartment) onPaymentReported;
   final VoidCallback onTap;
   final Function(Apartment) onApartmentUpdated;
+  User? tenant;
+  User? owner;
 
   ApartmentRow({
     Key? key,
@@ -29,6 +35,88 @@ class ApartmentRow extends StatefulWidget {
 
 class _ApartmentRowState extends State<ApartmentRow> {
   final PaymentService _paymentService = PaymentService();
+  final UserService _userService = UserService();
+  Future<User?>? _tenantFuture;
+  Future<User?>? _ownerFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchTenantAndOwner();
+  }
+
+  void _fetchTenantAndOwner() {
+    if (widget.apartment.tenantId.isNotEmpty) {
+      _tenantFuture = _userService.getUserById(widget.apartment.tenantId);
+    } else {
+      _tenantFuture = Future.value(User.empty());
+    }
+
+    if (widget.apartment.ownerId.isNotEmpty) {
+      _ownerFuture =
+          Future.value(_userService.getUserById(widget.apartment.ownerId));
+    } else {
+      _ownerFuture = Future.value();
+    }
+
+    setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      title: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Expanded(
+            child: FutureBuilder<List<User?>>(
+              future: Future.wait([_tenantFuture!, _ownerFuture!]),
+              builder: (context, snapshot) {
+                if (snapshot.hasData) {
+                  final tenant = snapshot.data![0];
+                  final owner = snapshot.data![1];
+                  return ApartmentDetailsWidget(
+                    apartment: widget.apartment,
+                    tenant: tenant,
+                    owner: owner,
+                    onUserTap: _handleUserTap,
+                  );
+                } else if (snapshot.hasError) {
+                  return Text('Error: ${snapshot.error}');
+                }
+                return CircularProgressIndicator();
+              },
+            ),
+          ),
+          Expanded(
+            child: Tooltip(
+              message: 'צפה בתשלומים',
+              child: GestureDetector(
+                onTap: () => _showPayments(context),
+                child: PaymentDetailsWidget(
+                  future: _paymentService
+                      .readAllPaymentsForApartment(widget.apartment.id),
+                  yearlyPaymentAmount: widget.apartment.yearlyPaymentAmount,
+                ),
+              ),
+            ),
+          ),
+          GestureDetector(
+            onTap: _handleReportPaymentTap,
+            child: Tooltip(
+              message: 'דווח תשלום',
+              child: Row(
+                children: [
+                  Icon(Icons.attach_money),
+                  Text('דווח', style: TextStyle(fontSize: 20)),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   void _showPayments(BuildContext context) async {
     await showDialog(
@@ -45,141 +133,147 @@ class _ApartmentRowState extends State<ApartmentRow> {
     setState(() {});
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      title: Row(
-        children: [
-          Expanded(
-            child: Text(
-              widget.apartment.attendantName,
-              style: TextStyle(fontSize: 25),
+  void _handleUserTap(BuildContext context, User? user) {
+    if (user == null || user.id.isEmpty) {
+      if (user == null) {
+        _showCreateUserDialog(context, UserType.owner);
+      } else {
+        _showCreateUserDialog(context, UserType.tenant);
+      }
+    } else {
+      _showEditUserDialog(context, user);
+    }
+    setState(() {});
+  }
+
+  void _showCreateUserDialog(BuildContext context, UserType role) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return CreateUserDialog(
+          buildingId: widget.apartment.buildingId,
+          role: role,
+          apartmentSelectedId: widget.apartment.id,
+        );
+      },
+    ).then((newUser) {
+      if (mounted) {
+        if (newUser != null) {
+          setState(() {
+            if (newUser.role == UserType.owner) {
+              widget.apartment.ownerId = newUser.id;
+              widget.owner = newUser;
+            } else if (newUser.role == UserType.tenant) {
+              widget.apartment.tenantId = newUser.id;
+              widget.tenant = newUser;
+            }
+            widget.onApartmentUpdated(widget.apartment);
+          });
+        }
+      }
+    });
+  }
+
+  void _showEditUserDialog(BuildContext context, User user) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return EditUserDialog(
+            user: user, buildingId: widget.apartment.buildingId);
+      },
+    ).then((_) {
+      setState(() {});
+    });
+  }
+
+  void _handleReportPaymentTap() {
+    if (widget.apartment.tenantId.isEmpty || widget.apartment.ownerId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        ErrorMessageWidget.create(
+          message: 'נא למלא דייר ובעלים עבור הדירה',
+        ),
+      );
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('דייר ובעלים חסרים'),
+            content: Text('נראה שהדירה זקוקה לדייר ולבעלים. האם תרצה להוסיף?'),
+            actions: <Widget>[
+              Visibility(
+                visible: widget.apartment.tenantId.isEmpty,
+                child: TextButton(
+                  child: Text('הוסף דייר'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    _showCreateUserDialog(context, UserType.tenant);
+                  },
+                ),
+              ),
+              Visibility(
+                visible: widget.apartment.ownerId.isEmpty,
+                child: TextButton(
+                  child: Text('הוסף בעלים'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    _showCreateUserDialog(context, UserType.owner);
+                  },
+                ),
+              ),
+            ],
+          );
+        },
+      );
+    } else {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20.0),
             ),
-          ),
-          Expanded(
-            child: GestureDetector(
-              onTap: () => _showPayments(context),
-              child: FutureBuilder<List<Payment>>(
-                future: _paymentService
-                    .readAllPaymentsForApartment(widget.apartment.id),
-                builder: (context, snapshot) {
-                  if (snapshot.hasData) {
-                    final double totalConfirmedPayments = snapshot.data!
-                        .where((payment) => payment.isConfirmed)
-                        .map((payment) => payment.amount)
-                        .fold(0.0, (prev, amount) => prev + amount);
-                    return Text(
-                      'תשלום שנתי ${totalConfirmedPayments.toStringAsFixed(2)}/${widget.apartment.yearlyPaymentAmount.toStringAsFixed(2)}',
-                      style: TextStyle(fontSize: 25),
-                    );
-                  } else if (snapshot.hasError) {
-                    return Text('Error: ${snapshot.error}');
-                  }
-                  // Display a loading spinner or any other placeholder widget while the data is being loaded
-                  return CircularProgressIndicator();
-                },
+            child: Container(
+              width: MediaQuery.of(context).size.width * 0.50,
+              child: IncomeReportScreen(
+                apartment: widget.apartment,
+                onPaymentReported: widget.onPaymentReported,
               ),
             ),
-          ),
-          GestureDetector(
-            onTap: () {
-              // Check if Yearly payment amount is not 0
-              if (widget.apartment.yearlyPaymentAmount == 0) {
-                // show dialog with error message נא לעדכן פרטי דירה
-                ScaffoldMessenger.of(context).showSnackBar(
-                  ErrorMessageWidget.create(message: 'נא לעדכן פרטי דירה'),
-                );
+          );
+        },
+      ).then((_) => widget.onPaymentReported(widget.apartment));
+    }
+  }
+}
 
-                Navigator.of(context)
-                    .push(
-                  MaterialPageRoute(
-                    builder: (context) => EditApartmentScreen(
-                      apartment: widget.apartment,
-                      onApartmentUpdated: (updatedApartment) {
-                        widget.onApartmentUpdated(updatedApartment);
-                      },
-                    ),
-                  ),
-                )
-                    .then((updatedApartment) {
-                  if (updatedApartment != null &&
-                      updatedApartment.yearlyPaymentAmount > 0) {
-                    // Use showDialog to display the IncomeReportScreen as a popup
-                    showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        // Wrap the IncomeReportScreen with a Dialog for proper display
-                        return Dialog(
-                          shape: RoundedRectangleBorder(
-                            borderRadius:
-                                BorderRadius.circular(20.0), // Circular edges
-                          ),
-                          child: Container(
-                            width: MediaQuery.of(context).size.width * 0.50,
-                            child: IncomeReportScreen(
-                                apartment: widget.apartment,
-                                onPaymentReported: widget.onPaymentReported),
-                          ),
-                        );
-                      },
-                    ).then((_) => widget.onPaymentReported(updatedApartment));
-                  } else {
-                    //show dialog with error message "על מנת לדווח תשלום עליך להזין סכום שנתי"
-                    showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return ErrorMessageWidget.create(
-                          message: 'על מנת לדווח תשלום עליך להזין סכום שנתי',
-                        );
-                      },
-                    );
-                    // then navigator.pop
-                    Navigator.of(context).pop();
-                  }
-                });
-              } else {
-                // Use showDialog to display the IncomeReportScreen as a popup
-                showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    // Wrap the IncomeReportScreen with a Dialog for proper display
-                    return Dialog(
-                      shape: RoundedRectangleBorder(
-                        borderRadius:
-                            BorderRadius.circular(20.0), // Circular edges
-                      ),
-                      child: Container(
-                        width: MediaQuery.of(context).size.width * 0.50,
-                        child: IncomeReportScreen(
-                            apartment: widget.apartment,
-                            onPaymentReported: widget.onPaymentReported),
-                      ),
-                    );
-                  },
-                ).then((_) => widget.onPaymentReported(widget.apartment));
-              }
-            },
-            child: Row(
-              children: [
-                Icon(Icons.attach_money),
-                Text('דווח', style: TextStyle(fontSize: 25)),
-              ],
-            ),
-          ),
-        ],
-      ),
-      onTap: () {
-        // Navigate to the EditApartmentScreen with the current apartment
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (context) => EditApartmentScreen(
-              apartment: widget.apartment,
-              onApartmentUpdated: (updatedApartment) {
-                widget.onApartmentUpdated(updatedApartment);
-              },
-            ),
-          ),
-        );
+class PaymentDetailsWidget extends StatelessWidget {
+  final Future<List<Payment>> future;
+  final double yearlyPaymentAmount;
+
+  const PaymentDetailsWidget({
+    Key? key,
+    required this.future,
+    required this.yearlyPaymentAmount,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<List<Payment>>(
+      future: future,
+      builder: (context, snapshot) {
+        if (snapshot.hasData) {
+          final double totalConfirmedPayments = snapshot.data!
+              .where((payment) => payment.isConfirmed)
+              .map((payment) => payment.amount)
+              .fold(0.0, (prev, amount) => prev + amount);
+          return Text(
+            'תשלום שנתי ${totalConfirmedPayments.toStringAsFixed(2)}/${yearlyPaymentAmount.toDouble().toStringAsFixed(2)}',
+            style: TextStyle(fontSize: 25),
+          );
+        } else if (snapshot.hasError) {
+          return Text('Error: ${snapshot.error}');
+        }
+        return CircularProgressIndicator();
       },
     );
   }

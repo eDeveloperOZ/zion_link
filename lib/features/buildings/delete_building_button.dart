@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:zion_link/shared/widgets/confirm_dialog_widget.dart';
-import 'package:zion_link/core/services/crud/building_service.dart';
+import 'package:tachles/shared/widgets/confirm_dialog_widget.dart';
+import 'package:tachles/core/services/crud/building_service.dart';
+import 'package:tachles/shared/widgets/success_message_widget.dart';
+import 'package:tachles/shared/widgets/error_message_widget.dart';
 
 class DeleteBuildingButton extends StatelessWidget {
   final String buildingID;
@@ -13,12 +15,12 @@ class DeleteBuildingButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      mainAxisSize: MainAxisSize.min,
+      mainAxisSize: MainAxisSize.max,
       children: [
         IconButton(
           icon: Icon(Icons.delete_sharp, size: 24),
           onPressed: () async {
-            bool? shouldDelete = await ConfirmDialog.display(
+            bool? shouldDelete = await ConfirmDialogWidget.display(
               context,
               message: 'האם אתה בטוח שברצונך למחוק את הבניין?',
               requiredPassword: true,
@@ -27,15 +29,27 @@ class DeleteBuildingButton extends StatelessWidget {
               },
             );
             if (shouldDelete == true) {
-              BuildingService buildingService = BuildingService();
-              await buildingService.deleteBuilding(buildingID);
-              // Pop back to DashboardScreen with a result indicating a building was deleted
-              Navigator.pop(
-                  context, true); // true indicates a building was deleted
+              try {
+                BuildingService buildingService = BuildingService();
+                await buildingService.deleteBuilding(buildingID);
+                // Pop back to DashboardScreen with a result indicating a building was deleted
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SuccessMessageWidget.create(message: 'הבניין נמחק בהצלחה'),
+                );
+                Navigator.pop(context, true);
+              } catch (error) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  ErrorMessageWidget.create(
+                    message: 'שגיאה במחיקת הבניין: $error',
+                  ),
+                );
+                return;
+              }
+              // true indicates a building was deleted
             }
           },
         ),
-        Text('מחק בניין'),
+        Text(' מחק בניין'),
       ],
     );
   }

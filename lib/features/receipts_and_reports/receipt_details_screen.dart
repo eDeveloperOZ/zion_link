@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:zion_link/core/models/building.dart';
-import 'package:zion_link/core/models/apartment.dart';
-import 'package:zion_link/core/models/payment.dart';
-import 'package:zion_link/features/payments/receipt_view.dart';
-import 'package:zion_link/core/services/crud/apartment_service.dart';
-import 'package:zion_link/core/services/crud/payment_service.dart';
+import 'package:tachles/core/models/building.dart';
+import 'package:tachles/core/models/apartment.dart';
+import 'package:tachles/core/models/payment.dart';
+import 'package:tachles/features/receipts_and_reports/receipt_view.dart';
+import 'package:tachles/core/services/crud/apartment_service.dart';
+import 'package:tachles/core/services/crud/payment_service.dart';
 
 class ReceiptDetailsScreen extends StatefulWidget {
   final Building building;
@@ -53,8 +53,8 @@ class _ReceiptDetailsScreenState extends State<ReceiptDetailsScreen> {
                   items: apartments.map((apartment) {
                     return DropdownMenuItem<Apartment>(
                       value: apartment,
-                      child: Text(
-                          '${apartment.number} - ${apartment.attendantName}'),
+                      child:
+                          Text('${apartment.number} - ${apartment.tenantId}'),
                     );
                   }).toList(),
                 );
@@ -84,7 +84,7 @@ class _ReceiptDetailsScreenState extends State<ReceiptDetailsScreen> {
                           onTap: () => _showReceiptDetails(
                               context,
                               payment,
-                              _selectedApartment!.attendantName,
+                              _selectedApartment!.tenantId,
                               widget.building.address),
                         );
                       },
@@ -101,12 +101,12 @@ class _ReceiptDetailsScreenState extends State<ReceiptDetailsScreen> {
   }
 
   void _showReceiptDetails(BuildContext context, Payment payment,
-      String attendantName, String buildingAddress) {
+      String tenantName, String buildingAddress) {
     showDialog(
       context: context,
       builder: (BuildContext context) => ReceiptView(
         payment: payment,
-        attendantName: attendantName,
+        tenantName: tenantName,
         buildingAddress: buildingAddress,
       ),
     );

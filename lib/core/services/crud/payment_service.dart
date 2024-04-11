@@ -1,24 +1,26 @@
-import '../../models/payment.dart';
-import '../storage_service.dart';
+import 'package:tachles/core/models/payment.dart';
+import 'package:tachles/core/services/supabase_service.dart';
 
 class PaymentService {
-  Future<List<Payment>> readAllPaymentsForApartment(String apartmentId) {
-    return StorageService.readAllPaymentsForApartment(apartmentId);
+  final SupabaseService supabaseService = SupabaseService();
+
+  Future<List<Payment>> readAllPaymentsForApartment(String apartmentId) async {
+    return await supabaseService.readAllForApartment<Payment>(apartmentId);
   }
 
   Future<void> createPayment(Payment newPayment) async {
-    await StorageService.createPayment(newPayment);
+    await supabaseService.create<Payment>(newPayment);
   }
 
   Future<Payment?> getPaymentById(String apartmentId, String paymentId) async {
-    return await StorageService.readPaymentById(paymentId);
+    return await supabaseService.readById<Payment>(paymentId);
   }
 
   Future<void> updatePayment(Payment updatedPayment) async {
-    await StorageService.updatePayment(updatedPayment);
+    await supabaseService.update<Payment>(updatedPayment);
   }
 
   Future<void> deletePayment(String paymentId) async {
-    await StorageService.deletePayment(paymentId);
+    await supabaseService.delete<Payment>(paymentId);
   }
 }

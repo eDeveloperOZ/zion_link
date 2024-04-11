@@ -2,8 +2,8 @@ class Apartment {
   final String id;
   final String buildingId;
   final String number;
-  final String ownerName;
-  String attendantName;
+  String ownerId;
+  String tenantId;
   double yearlyPaymentAmount;
   double pastDebt = 0;
 
@@ -11,28 +11,19 @@ class Apartment {
     required this.id,
     required this.buildingId,
     required this.number,
-    required this.ownerName,
-    required this.attendantName,
+    required this.ownerId,
+    required this.tenantId,
     required this.yearlyPaymentAmount,
     required this.pastDebt,
   });
-
-  // void reportPayment(Payment payment) {
-  //   payments.add(payment);
-  // }
-
-  // double getAmountLeft() {
-  //   double totalPaid = payments.fold(0, (sum, item) => sum + item.amount);
-  //   return yearlyPaymentAmount - totalPaid;
-  // }
 
   Map<String, dynamic> toJson() {
     return {
       'id': id,
       'buildingId': buildingId,
       'number': number,
-      'ownerName': ownerName,
-      'attendantName': attendantName,
+      'ownerId': ownerId,
+      'tenantId': tenantId,
       'yearlyPaymentAmount': yearlyPaymentAmount,
       'pastDebt': pastDebt,
     };
@@ -43,10 +34,14 @@ class Apartment {
       id: json['id'],
       buildingId: json['buildingId'],
       number: json['number'],
-      ownerName: json['ownerName'],
-      attendantName: json['attendantName'] ?? '',
-      yearlyPaymentAmount: json['yearlyPaymentAmount'],
-      pastDebt: json['pastDebt'] ?? 0,
+      ownerId: json['ownerId'],
+      tenantId: json['tenantId'] ?? '',
+      yearlyPaymentAmount: (json['yearlyPaymentAmount'] is int)
+          ? (json['yearlyPaymentAmount'] as int).toDouble()
+          : json['yearlyPaymentAmount'],
+      pastDebt: (json['pastDebt'] is int)
+          ? (json['pastDebt'] as int).toDouble()
+          : json['pastDebt'] ?? 0.0,
     );
   }
 }

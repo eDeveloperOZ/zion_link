@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:zion_link/core/services/storage_service.dart';
+import 'package:tachles/features/users/change_password_screen.dart';
+
+import 'package:tachles/shared/widgets/notifier_widget.dart';
 
 class SettingView extends StatelessWidget {
   @override
@@ -10,47 +12,34 @@ class SettingView extends StatelessWidget {
         title: Text('הגדרות'),
       ),
       body: Center(
-        child: FutureBuilder<String>(
-          future: StorageService.localPath,
-          builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
-            if (snapshot.connectionState == ConnectionState.done) {
-              if (snapshot.hasError) {
-                return Text('Error: ${snapshot.error}');
-              } else {
-                // If the Future is complete and has no errors, display the result
-                return Tooltip(
-                  message: snapshot.data, // Use the data from the snapshot here
-                  child: ElevatedButton(
-                    onPressed: () {
-                      final String? filePath = snapshot.data;
-                      if (filePath != null) {
-                        // Assuming LocalStorage().getFilePath() returns a path to a directory
-                        // and using a method to open the directory
-                        openDirectory(filePath);
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('לא נמצא נתיב לפתיחה')),
-                        );
-                      }
-                    },
-                    child: Text('פתח מיקום קבצים'),
-                  ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Text('הגרסה הזו פועלת כעת באופן מקוון'),
+            ElevatedButton(
+              onPressed: () {
+                // Here you can add functionality to direct the user to the online version
+                // For example, opening a web page or redirecting to a different view in the app
+                // Assuming you have a URL to the online version:
+                const String onlineVersionUrl =
+                    'https://your-online-version-link.com';
+                launchUrl(Uri.parse(onlineVersionUrl));
+              },
+              child: Text('עבור לגרסה המקוונת'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => ChangePasswordScreen()),
                 );
-              }
-            } else {
-              // While the Future is not complete, show a loading spinner
-              return CircularProgressIndicator();
-            }
-          },
+              },
+              child: Text('שינוי סיסמה'),
+            ),
+          ],
         ),
       ),
     );
-  }
-}
-
-Future<void> openDirectory(String filePath) async {
-  final Uri uri = Uri.file(filePath);
-  if (!await launchUrl(uri)) {
-    throw 'Could not open $filePath';
   }
 }

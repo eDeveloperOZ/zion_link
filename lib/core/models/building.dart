@@ -22,7 +22,7 @@ class Building {
 
   factory Building.fromJson(Map<String, dynamic> json) {
     return Building(
-        id: json['id'], // Deserialize id field
+        id: json['id'],
         name: json['name'],
         balance: json['balance']?.toDouble(),
         address: json['address']);

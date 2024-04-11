@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:zion_link/core/models/apartment.dart';
+import 'package:flutter_email_sender/flutter_email_sender.dart';
+import 'package:tachles/core/models/apartment.dart';
 import 'package:intl/intl.dart';
-import 'package:zion_link/core/models/payment.dart';
-import 'package:zion_link/core/services/crud/apartment_service.dart';
-import 'package:zion_link/core/services/crud/payment_service.dart'; // Add this import
-import 'package:zion_link/shared/widgets/success_message_widget.dart'; // Add this line
+import 'package:tachles/core/models/payment.dart';
+import 'package:tachles/core/models/user.dart';
+import 'package:tachles/core/services/crud/apartment_service.dart';
+import 'package:tachles/core/services/crud/payment_service.dart';
+import 'package:tachles/core/services/crud/user_service.dart';
+import 'package:tachles/shared/widgets/error_message_widget.dart';
+import 'package:tachles/shared/widgets/success_message_widget.dart';
 
 class IncomeReportScreen extends StatefulWidget {
   final Apartment apartment;
@@ -19,6 +23,7 @@ class IncomeReportScreen extends StatefulWidget {
 }
 
 class _IncomeReportScreenState extends State<IncomeReportScreen> {
+  final UserService _userService = UserService();
   late String payerName;
   late double basePaymentAmount;
   late double paymentAmount;
@@ -32,14 +37,57 @@ class _IncomeReportScreenState extends State<IncomeReportScreen> {
   String paymentPurpose = '';
   final TextEditingController _paymentPurposeController =
       TextEditingController();
+  Future<User?>? tenant;
+  Future<User?>? owner;
+  bool sendReceiptToTenant = true;
+  bool sendReceiptToOwner = false;
 
   @override
   void initState() {
     super.initState();
-    payerName = widget.apartment.attendantName; // Default to owner's name
+    payerName = widget.apartment.tenantId;
     basePaymentAmount = widget.apartment.yearlyPaymentAmount / 12;
-    paymentAmount = basePaymentAmount; // Initialize with base amount
+    paymentAmount = basePaymentAmount;
     _paymentPurposeController.text = paymentPurpose;
+    tenant = _userService.getUserById(widget.apartment.tenantId);
+    owner = _userService.getUserById(widget.apartment.ownerId);
+  }
+
+  void _askForYearlyPaymentAmount() async {
+    // Show a dialog to ask for the yearly payment amount
+    double? newYearlyPaymentAmount = await showDialog<double>(
+      context: context,
+      builder: (context) {
+        double? inputAmount;
+        return AlertDialog(
+          title: Text('הכנס סכום שנתי לתשלום'),
+          content: TextField(
+            keyboardType: TextInputType.number,
+            onChanged: (value) {
+              inputAmount = double.tryParse(value);
+            },
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('אישור'),
+              onPressed: () {
+                Navigator.of(context).pop(inputAmount);
+              },
+            ),
+          ],
+        );
+      },
+    );
+
+    // Update the yearlyPaymentAmount in the database
+    if (newYearlyPaymentAmount != null) {
+      widget.apartment.yearlyPaymentAmount = newYearlyPaymentAmount;
+      await ApartmentService().updateApartment(widget.apartment);
+      setState(() {
+        basePaymentAmount = newYearlyPaymentAmount / 12;
+        paymentAmount = basePaymentAmount;
+      });
+    }
   }
 
   @override
@@ -50,6 +98,11 @@ class _IncomeReportScreenState extends State<IncomeReportScreen> {
 
   @override
   Widget build(BuildContext context) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (widget.apartment.yearlyPaymentAmount == 0) {
+        _askForYearlyPaymentAmount();
+      }
+    });
     return Scaffold(
       appBar: AppBar(
         title: Text('דיווח תשלום'),
@@ -92,33 +145,63 @@ class _IncomeReportScreenState extends State<IncomeReportScreen> {
   }
 
   Widget _buildPayerRadioButtons() {
-    return Column(
-      children: [
-        RadioListTile<String>(
-          title: Text('המשכיר (${widget.apartment.attendantName})'),
-          value: widget.apartment.attendantName,
-          groupValue: payerName,
-          onChanged: (value) {
-            setState(() => payerName = value!);
-          },
-        ),
-        RadioListTile<String>(
-          title: Text('הבעלים (${widget.apartment.ownerName})'),
-          value: widget.apartment.ownerName,
-          groupValue: payerName,
-          onChanged: (value) {
-            setState(() => payerName = value!);
-          },
-        ),
-        RadioListTile<String>(
-          title: Text('אחר'),
-          value: 'אחר',
-          groupValue: payerName,
-          onChanged: (value) {
-            setState(() => payerName = value!);
-          },
-        ),
-      ],
+    return FutureBuilder<List<User?>>(
+      future: Future.wait([tenant!, owner!]),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done) {
+          return Column(
+            children: [
+              RadioListTile<String>(
+                title: Row(
+                  children: [
+                    Text(
+                      'המשכיר (${snapshot.data?[0]?.firstName ?? ''} ${snapshot.data?[0]?.lastName ?? ''})',
+                    ),
+                    Text('קבלה'),
+                    Checkbox(
+                      value: sendReceiptToTenant,
+                      onChanged: (bool? value) {
+                        setState(() {
+                          sendReceiptToTenant = value!;
+                        });
+                      },
+                    ),
+                  ],
+                ),
+                value: widget.apartment.tenantId,
+                groupValue: payerName,
+                onChanged: (value) {
+                  setState(() => payerName = value!);
+                },
+              ),
+              RadioListTile<String>(
+                title: Row(
+                  children: [
+                    Text(
+                      'הבעלים (${snapshot.data?[1]?.firstName ?? ''} ${snapshot.data?[1]?.lastName ?? ''})',
+                    ),
+                    Text('קבלה'),
+                    Checkbox(
+                        value: sendReceiptToOwner,
+                        onChanged: (bool? value) {
+                          setState(() {
+                            sendReceiptToOwner = value!;
+                          });
+                        }),
+                  ],
+                ),
+                value: widget.apartment.ownerId,
+                groupValue: payerName,
+                onChanged: (value) {
+                  setState(() => payerName = value!);
+                },
+              ),
+            ],
+          );
+        } else {
+          return CircularProgressIndicator(); // or any other loading indicator
+        }
+      },
     );
   }
 
@@ -268,6 +351,8 @@ class _IncomeReportScreenState extends State<IncomeReportScreen> {
         PaymentService(); // Initialize PaymentService
 
     List<Payment> payments = [];
+    List<Payment> paymentsMade =
+        await paymentService.readAllPaymentsForApartment(widget.apartment.id);
 
     for (int i = 0; i < numberOfPayments; i++) {
       int startMonth = paymentPeriodStart.month + i;
@@ -287,6 +372,22 @@ class _IncomeReportScreenState extends State<IncomeReportScreen> {
         periodEnd = DateTime(periodEnd.year + 1, 1, periodEnd.day);
       }
 
+      // Check if a payment already exists for the current period
+      bool paymentExists = paymentsMade.any((payment) {
+        DateTime existingPeriodStart =
+            DateTime.parse(payment.periodCoverageStart);
+        DateTime existingPeriodEnd = DateTime.parse(payment.periodCoverageEnd);
+        return existingPeriodStart == periodStart &&
+            existingPeriodEnd == periodEnd;
+      });
+
+      if (paymentExists) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          ErrorMessageWidget.create(
+              message: 'תשלום כבר דווח עבור התקופה הנוכחית'),
+        );
+        return;
+      }
       // Create a new Payment object for each payment
       Payment payment = Payment(
         id: UniqueKey().toString(),
@@ -304,12 +405,44 @@ class _IncomeReportScreenState extends State<IncomeReportScreen> {
       payments.add(payment);
 
       // Use PaymentService to create the payment
-      await paymentService.createPayment(payment);
+      try {
+        await paymentService.createPayment(payment);
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          ErrorMessageWidget.create(message: 'שגיאה בשמירת התשלום'),
+        );
+        return;
+      }
     }
 
     // Update the apartment with the new payments
     await apartmentService.updateApartment(widget.apartment);
+    // TODO: Implement sending email
+    //send an email to the tenant and the owner if there bool checkboxwas checked
+    // if (sendReceiptToTenant && tenant != null) {
+    // final User? tenantUser = await tenant;
+    // if (tenantUser != null) {
+    // final Email email = Email(
+    //   body: 'דיווח תשלום עבור הדירה ${widget.apartment.number}',
+    //   subject: 'דיווח תשלום',
+    //   recipients: [tenantUser.email],
+    // );
 
+    // // await FlutterEmailSender.send(email);
+    // }
+    // // }
+    // if (sendReceiptToOwner && owner != null) {
+    //   final User? ownerUser = await owner;
+    //   if (ownerUser != null) {
+    //     final Email email = Email(
+    //       body: 'דיווח תשלום עבור הדירה ${widget.apartment.number}',
+    //       subject: 'דיווח תשלום',
+    //       recipients: [ownerUser.email],
+    //     );
+
+    //     await FlutterEmailSender.send(email);
+    //   }
+    // }
     ScaffoldMessenger.of(context).showSnackBar(
       SuccessMessageWidget.create(message: 'הדיווח נשלח בהצלחה'),
     );

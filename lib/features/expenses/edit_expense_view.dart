@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:zion_link/core/models/expense.dart';
-import 'package:zion_link/core/services/storage_service.dart';
-import 'package:zion_link/shared/widgets/confirm_dialog_widget.dart';
-import 'package:zion_link/core/services/crud/expense_service.dart'; // Import ExpenseService
+import 'package:tachles/core/models/expense.dart';
+import 'package:tachles/core/services/storage_service.dart';
+import 'package:tachles/shared/widgets/confirm_dialog_widget.dart';
+import 'package:tachles/core/services/crud/expense_service.dart'; // Import ExpenseService
 
 class EditExpenseView extends StatefulWidget {
   final Expense expense;
@@ -72,7 +72,7 @@ class _EditExpenseViewState extends State<EditExpenseView> {
   }
 
   Future<void> _deleteExpense() async {
-    final confirmDelete = await ConfirmDialog.display(
+    final confirmDelete = await ConfirmDialogWidget.display(
       context,
       message: 'האם אתה בטוח שברצונך למחוק הוצאה זו?',
       onConfirm: (bool isConfirmed) {

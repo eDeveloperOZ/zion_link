@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:zion_link/core/models/building.dart';
-import 'package:zion_link/core/models/apartment.dart';
-import 'package:zion_link/core/models/payment.dart'; // Import Payment model
-import 'package:zion_link/core/services/crud/apartment_service.dart';
-import 'package:zion_link/core/services/crud/payment_service.dart'; // Assuming this service exists
-import 'package:zion_link/features/payments/receipt_view.dart'; // Import ReceiptView
+import 'package:tachles/core/models/building.dart';
+import 'package:tachles/core/models/apartment.dart';
+import 'package:tachles/core/models/payment.dart'; // Import Payment model
+import 'package:tachles/core/services/crud/apartment_service.dart';
+import 'package:tachles/core/services/crud/payment_service.dart'; // Assuming this service exists
+import 'package:tachles/features/receipts_and_reports/receipt_view.dart'; // Import ReceiptView
 import 'package:intl/intl.dart';
 
 class ReceiptGeneratorButton extends StatelessWidget {
@@ -30,7 +30,6 @@ class ReceiptGeneratorButton extends StatelessWidget {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        Apartment? _selectedApartment;
         return AlertDialog(
           title: Text('בחר דירה'),
           content: FutureBuilder<List<Apartment>>(
@@ -42,23 +41,23 @@ class ReceiptGeneratorButton extends StatelessWidget {
                 return Text('Error: ${snapshot.error}');
               } else if (snapshot.hasData) {
                 List<Apartment> apartments = snapshot.data!;
-                return DropdownButton<Apartment>(
-                  isExpanded: true,
-                  value: _selectedApartment,
-                  hint: Text('בחר דירה'),
-                  onChanged: (Apartment? apartment) {
-                    _selectedApartment = apartment;
-                    if (apartment != null) {
-                      _showPaymentSelection(context, apartment);
-                    }
-                  },
-                  items: apartments.map((apartment) {
-                    return DropdownMenuItem<Apartment>(
-                      value: apartment,
-                      child: Text(
-                          '${apartment.number} - ${apartment.attendantName}'),
-                    );
-                  }).toList(),
+                return Container(
+                  height: 200, // Set a fixed height for the list
+                  width: double.maxFinite, // Set the width to match the dialog
+                  child: ListView.builder(
+                    itemCount: apartments.length,
+                    itemBuilder: (context, index) {
+                      Apartment apartment = apartments[index];
+                      return ListTile(
+                        title:
+                            Text('${apartment.number} - ${apartment.tenantId}'),
+                        onTap: () {
+                          Navigator.of(context).pop(); // Close the dialog
+                          _showPaymentSelection(context, apartment);
+                        },
+                      );
+                    },
+                  ),
                 );
               } else {
                 return Text('No apartments found');
@@ -82,7 +81,6 @@ class ReceiptGeneratorButton extends StatelessWidget {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        Payment? _selectedPayment;
         return AlertDialog(
           title: Text('בחר תשלום'),
           content: FutureBuilder<List<Payment>>(
@@ -94,31 +92,33 @@ class ReceiptGeneratorButton extends StatelessWidget {
                 return Text('Error: ${snapshot.error}');
               } else if (snapshot.hasData) {
                 List<Payment> payments = snapshot.data!;
-                return DropdownButton<Payment>(
-                  isExpanded: true,
-                  value: _selectedPayment,
-                  hint: Text('בחר תשלום'),
-                  onChanged: (Payment? payment) {
-                    Navigator.of(context).pop(); // Close the dialog
-                    if (payment != null) {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => ReceiptView(
-                            payment: payment,
-                            attendantName: apartment.attendantName,
-                            buildingAddress: building.address,
-                          ),
+                return Container(
+                  height: 200, // Set a fixed height for the list
+                  width: double.maxFinite, // Set the width to match the dialog
+                  child: ListView.builder(
+                    itemCount: payments.length,
+                    itemBuilder: (context, index) {
+                      Payment payment = payments[index];
+                      return ListTile(
+                        title: Text(
+                          '${DateFormat('MMMM', 'he').format(DateTime.parse(payment.periodCoverageStart))} - ${payment.amount.toStringAsFixed(2)}₪',
                         ),
+                        onTap: () {
+                          Navigator.of(context).pop(); // Close the dialog
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return ReceiptView(
+                                payment: payment,
+                                tenantName: apartment.tenantId,
+                                buildingAddress: building.address,
+                              );
+                            },
+                          );
+                        },
                       );
-                    }
-                  },
-                  items: payments.map((payment) {
-                    return DropdownMenuItem<Payment>(
-                      value: payment,
-                      child: Text(
-                          '${DateFormat('MMMM', 'he').format(DateTime.parse(payment.periodCoverageStart))} - ${payment.amount}₪'),
-                    );
-                  }).toList(),
+                    },
+                  ),
                 );
               } else {
                 return Text('No payments found');

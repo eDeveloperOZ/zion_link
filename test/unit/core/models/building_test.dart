@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:zion_link/core/models/building.dart';
+import 'package:tachles/core/models/building.dart';
 
 void main() {
   group('Building', () {

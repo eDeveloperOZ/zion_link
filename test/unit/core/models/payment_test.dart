@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:zion_link/core/models/payment.dart';
+import 'package:tachles/core/models/payment.dart';
 
 void main() {
   group('Payment', () {

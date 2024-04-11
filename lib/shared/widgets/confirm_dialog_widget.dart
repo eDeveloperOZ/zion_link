@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
-class ConfirmDialog extends StatelessWidget {
+class ConfirmDialogWidget extends StatelessWidget {
   final String message;
   final bool requiredPassword;
   final Function(bool) onConfirm;
 
-  const ConfirmDialog({
+  const ConfirmDialogWidget({
     Key? key,
     this.message = "האם אתה בטוח?",
     required this.onConfirm,
@@ -90,7 +90,7 @@ class ConfirmDialog extends StatelessWidget {
       context: context,
       barrierDismissible: false, // User must tap button!
       builder: (BuildContext context) {
-        return ConfirmDialog(
+        return ConfirmDialogWidget(
           message: message,
           onConfirm: (bool result) {
             Navigator.of(context).pop(result); // Pop with result

@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:zion_link/core/models/apartment.dart';
-import 'package:zion_link/features/apartments/add_apartment_dialog.dart';
+import 'package:tachles/core/models/apartment.dart';
+import 'package:tachles/features/apartments/add_apartment_dialog.dart';
 
 void main() {
   group('AddApartmentDialog', () {
     // Add your test cases here
     testWidgets('should have a valid structure', (WidgetTester tester) async {
-      final addApartmentDialog = AddApartmentDialog(
+      final addApartmentDialog = EditApartmentDetails(
         onAdd: (Apartment apartment) {},
         buildingId: '1',
       );
@@ -23,7 +23,7 @@ void main() {
       Apartment? addedApartment;
 
       await tester.pumpWidget(MaterialApp(
-        home: AddApartmentDialog(
+        home: EditApartmentDetails(
           onAdd: (Apartment apartment) {
             addedApartment = apartment;
           },
@@ -45,7 +45,7 @@ void main() {
 
       // Check if the apartment was added
       expect(addedApartment, isNotNull);
-      expect(addedApartment!.attendantName, 'John Doe');
+      expect(addedApartment!.tenantId, 'John Doe');
       expect(addedApartment!.yearlyPaymentAmount, 1200);
     });
   });

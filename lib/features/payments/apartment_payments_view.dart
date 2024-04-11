@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:zion_link/core/models/apartment.dart';
-import 'package:zion_link/core/models/payment.dart';
-import 'package:zion_link/core/services/crud/payment_service.dart';
-import 'package:zion_link/core/services/crud/building_service.dart';
-import 'package:zion_link/shared/widgets/delete_button.dart';
-import 'package:zion_link/shared/widgets/success_message_widget.dart';
-import 'package:zion_link/features/payments/receipt_view.dart';
-import 'package:zion_link/shared/widgets/error_message_widget.dart';
+import 'package:tachles/core/models/apartment.dart';
+import 'package:tachles/core/models/payment.dart';
+import 'package:tachles/core/models/user.dart';
+import 'package:tachles/core/services/crud/apartment_service.dart';
+import 'package:tachles/core/services/crud/payment_service.dart';
+import 'package:tachles/core/services/crud/building_service.dart';
+import 'package:tachles/core/services/crud/user_service.dart';
+import 'package:tachles/shared/widgets/delete_button.dart';
+import 'package:tachles/shared/widgets/success_message_widget.dart';
+import 'package:tachles/shared/widgets/notifier_widget.dart';
+import 'package:tachles/features/receipts_and_reports/receipt_view.dart';
+import 'package:tachles/shared/widgets/error_message_widget.dart';
 
 class ApartmentPaymentsView extends StatefulWidget {
   final Apartment apartment;
@@ -22,6 +26,23 @@ class ApartmentPaymentsView extends StatefulWidget {
 class _ApartmentPaymentsViewState extends State<ApartmentPaymentsView> {
   final PaymentService _paymentService = PaymentService();
   final BuildingService _buildingService = BuildingService();
+  final UserService _userService = UserService();
+  String? tenantName;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchTenantName();
+  }
+
+  Future<void> _fetchTenantName() async {
+    final tenant = await _userService.getUserById(widget.apartment.tenantId);
+    if (tenant != null) {
+      setState(() {
+        tenantName = '${tenant.firstName} ${tenant.lastName ?? ''}';
+      });
+    }
+  }
 
   List<Payment> filterPayments(List<Payment> payments, String? filter) {
     final now = DateTime.now();
@@ -58,7 +79,7 @@ class _ApartmentPaymentsViewState extends State<ApartmentPaymentsView> {
               periodCoverageStart: periodStart.toString(),
               periodCoverageEnd: periodEnd.toString(),
               paymentMethod: '',
-              reason: '',
+              reason: 'pesudo payment for prediction',
               isConfirmed: false,
             ));
           }
@@ -192,62 +213,86 @@ class _ApartmentPaymentsViewState extends State<ApartmentPaymentsView> {
                   title: Text('${payment.amount}'),
                   subtitle: Text(
                       '${DateFormat('HH:mm MM/dd').format(payment.dateMade)} - ${payment.paymentMethod}ֿ\nעבור חודש: $monthName'),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (!payment.isConfirmed)
-                        ElevatedButton(
-                          child: Text('אשר תשלום'),
-                          onPressed: () async {
-                            final paymentToUpdate =
-                                await _paymentService.getPaymentById(
-                                    widget.apartment.id, payment.id);
-                            if (paymentToUpdate != null) {
-                              paymentToUpdate.isConfirmed = true;
-                              await _paymentService
-                                  .updatePayment(paymentToUpdate);
-                              setState(() {});
-                            }
-                          },
-                        ),
-                      DeleteButton(
-                        requirePassword: true,
-                        onDelete: () async {
-                          await _paymentService.deletePayment(payment.id);
-                          setState(() {});
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SuccessMessageWidget.create(
-                                message: 'התשלום נמחק בהצלחה'),
-                          );
-                        },
-                      ),
-                      IconButton(
-                        icon: Icon(Icons.receipt),
-                        onPressed: () async {
-                          final attendantName = widget.apartment.attendantName;
-                          final buildingId = widget.apartment.buildingId;
-                          final building = await _buildingService
-                              .readBuildingById(buildingId);
-                          showDialog(
-                            context: context,
-                            builder: (BuildContext context) {
-                              return ReceiptView(
-                                payment: payment,
-                                attendantName: attendantName,
-                                buildingAddress: building.address,
-                              );
-                            },
-                          );
-                        },
-                      ),
-                    ],
-                  ),
+                  trailing: _build_payment_actions(context, payment),
                 ),
               );
             },
           );
         }
       },
+    );
+  }
+
+  Widget _build_payment_actions(BuildContext context, Payment payment) {
+    if (payment.reason == 'pesudo payment for prediction') {
+      return FutureBuilder<User?>(
+        future: _userService.getUserById(widget.apartment.tenantId),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return CircularProgressIndicator();
+          } else if (snapshot.hasError) {
+            return Text('Error: ${snapshot.error}');
+          } else {
+            final tenant = snapshot.data;
+            if (tenant != null) {
+              return NotifierWidget(
+                message:
+                    'היי ${tenant.firstName}, רציתי להזכיר לך על תשלום השכירות שלך לחודש הקרוב',
+                phoneNumber: tenant.phoneNumber ?? '',
+                tooltip: 'הודעת איחור לדייר',
+              );
+            } else {
+              return Text('Tenant not found');
+            }
+          }
+        },
+      );
+    }
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (!payment.isConfirmed)
+          ElevatedButton(
+            child: Text('אשר תשלום'),
+            onPressed: () async {
+              final paymentToUpdate = await _paymentService.getPaymentById(
+                  widget.apartment.id, payment.id);
+              if (paymentToUpdate != null) {
+                paymentToUpdate.isConfirmed = true;
+                await _paymentService.updatePayment(paymentToUpdate);
+                setState(() {});
+              }
+            },
+          ),
+        DeleteButton(
+          requirePassword: true,
+          onDelete: () async {
+            await _paymentService.deletePayment(payment.id);
+            setState(() {});
+            ScaffoldMessenger.of(context).showSnackBar(
+              SuccessMessageWidget.create(message: 'התשלום נמחק בהצלחה'),
+            );
+          },
+        ),
+        IconButton(
+          icon: Icon(Icons.receipt),
+          onPressed: () async {
+            final tenantName = widget.apartment.tenantId;
+            final buildingId = widget.apartment.buildingId;
+            final building = await _buildingService.getBuildingById(buildingId);
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return ReceiptView(
+                  payment: payment,
+                  tenantName: tenantName,
+                  buildingAddress: building?.address ?? '',
+                );
+              },
+            );
+          },
+        ),
+      ],
     );
   }
 }

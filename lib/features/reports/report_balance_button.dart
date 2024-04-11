@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:zion_link/core/models/building.dart';
-import 'package:zion_link/features/reports/report_balance_view.dart';
+import 'package:tachles/core/models/building.dart';
+import 'package:tachles/features/receipts_and_reports/report_balance_screen.dart';
 
 class ReportBalanceButton extends StatelessWidget {
   final Building building;
@@ -19,11 +19,11 @@ class ReportBalanceButton extends StatelessWidget {
   }
 
   void _generateBalanceReport(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ReportBalanceView(building: building),
-      ),
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return ReportBalanceScreen(building: building);
+      },
     );
   }
 }

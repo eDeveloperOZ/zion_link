@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:zion_link/core/models/apartment.dart';
-import 'package:zion_link/core/services/crud/apartment_service.dart';
+import 'package:tachles/core/models/apartment.dart';
+import 'package:tachles/core/services/crud/apartment_service.dart';
 
 class EditApartmentScreen extends StatefulWidget {
   final Apartment apartment;
@@ -20,15 +20,15 @@ class _EditApartmentScreenState extends State<EditApartmentScreen> {
   final _formKey = GlobalKey<FormState>();
   late String number;
   late String ownerName;
-  late String attendantName;
+  late String tenantName;
   late double yearlyPaymentAmount;
 
   @override
   void initState() {
     super.initState();
     number = widget.apartment.number;
-    ownerName = widget.apartment.ownerName;
-    attendantName = widget.apartment.attendantName;
+    ownerName = widget.apartment.ownerId;
+    tenantName = widget.apartment.tenantId;
     yearlyPaymentAmount = widget.apartment.yearlyPaymentAmount;
   }
 
@@ -39,14 +39,14 @@ class _EditApartmentScreenState extends State<EditApartmentScreen> {
         id: widget.apartment.id,
         buildingId: widget.apartment.buildingId,
         number: number,
-        ownerName: ownerName,
-        attendantName: attendantName,
+        ownerId: ownerName,
+        tenantId: tenantName,
         yearlyPaymentAmount: yearlyPaymentAmount,
         pastDebt: widget.apartment.pastDebt,
       );
       ApartmentService().updateApartment(updatedApartment);
       widget.onApartmentUpdated(updatedApartment);
-      Navigator.of(context).pop();
+      Navigator.pop(context, updatedApartment);
     }
   }
 
@@ -81,7 +81,7 @@ class _EditApartmentScreenState extends State<EditApartmentScreen> {
               onSaved: (value) => ownerName = value!,
             ),
             TextFormField(
-              initialValue: attendantName,
+              initialValue: tenantName,
               decoration: InputDecoration(
                   labelText: 'שם המשכיר'), // Attendant Name in Hebrew
               validator: (value) {
@@ -90,7 +90,7 @@ class _EditApartmentScreenState extends State<EditApartmentScreen> {
                 }
                 return null;
               },
-              onSaved: (value) => attendantName = value!,
+              onSaved: (value) => tenantName = value!,
             ),
             TextFormField(
               initialValue: '',

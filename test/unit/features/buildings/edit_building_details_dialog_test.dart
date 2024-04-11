@@ -2,8 +2,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:zion_link/core/models/building.dart';
-import 'package:zion_link/features/buildings/edit_building_details_dialog.dart';
+import 'package:tachles/core/models/building.dart';
+import 'package:tachles/features/buildings/edit_building_details_dialog.dart';
 
 void main() {
   group('EditBuildingDetailsDialog', () {
