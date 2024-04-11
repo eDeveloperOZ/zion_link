@@ -151,25 +151,16 @@ class _ApartmentRowState extends State<ApartmentRow> {
       context: context,
       builder: (BuildContext context) {
         return CreateUserDialog(
-          buildingId: widget.apartment.buildingId,
-          role: role,
-          apartmentSelectedId: widget.apartment.id,
-        );
+            buildingId: widget.apartment.buildingId,
+            role: role,
+            apartmentSelectedId: widget.apartment.id,
+            apartment: widget.apartment);
       },
-    ).then((newUser) {
-      if (mounted) {
-        if (newUser != null) {
-          setState(() {
-            if (newUser.role == UserType.owner) {
-              widget.apartment.ownerId = newUser.id;
-              widget.owner = newUser;
-            } else if (newUser.role == UserType.tenant) {
-              widget.apartment.tenantId = newUser.id;
-              widget.tenant = newUser;
-            }
-            widget.onApartmentUpdated(widget.apartment);
-          });
-        }
+    ).then((updatedApartment) {
+      if (mounted && updatedApartment != null) {
+        setState(() {
+          widget.onApartmentUpdated(updatedApartment);
+        });
       }
     });
   }

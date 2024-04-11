@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:tachles/core/models/user.dart';
+import 'package:tachles/core/models/apartment.dart';
 import 'package:tachles/core/services/crud/apartment_service.dart';
 import 'package:tachles/core/services/crud/user_service.dart';
 import 'package:tachles/shared/widgets/category_dropdown.dart';
-import 'package:tachles/shared/widgets/apartment_dropdown.dart';
 import 'package:tachles/shared/widgets/error_message_widget.dart';
 import 'package:tachles/shared/widgets/success_message_widget.dart';
 
 class CreateUserDialog extends StatefulWidget {
   final UserType role;
   final String buildingId;
+  final Apartment apartment;
   final bool? isProfessionRequired;
   final String? apartmentSelectedId;
 
@@ -18,6 +19,7 @@ class CreateUserDialog extends StatefulWidget {
       {Key? key,
       required this.role,
       required this.buildingId,
+      required this.apartment,
       this.isProfessionRequired,
       this.apartmentSelectedId})
       : super(key: key);
@@ -76,7 +78,7 @@ class _CreateUserDialogState extends State<CreateUserDialog> {
       try {
         await UserService.createUser(newUser, widget.buildingId);
         ScaffoldMessenger.of(context).showSnackBar(
-          SuccessMessageWidget.create(message: 'הדירה ריקה נוצרה בהצלחה!'),
+          SuccessMessageWidget.create(message: 'דירה ריקה נוצרה בהצלחה!'),
         );
         Navigator.pop(context, newUser);
       } catch (e) {
@@ -99,14 +101,6 @@ class _CreateUserDialogState extends State<CreateUserDialog> {
                   .id
               : apartmentId;
 
-        if (!isProfessionRequired && dateOfBirth == null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            ErrorMessageWidget.create(
-              message: 'איך נדע מתי לאחל לך יומולדת שמח?',
-            ),
-          );
-          return;
-        }
         User newUser = User(
           id: id,
           apartmentId: apartmentId,
@@ -127,7 +121,15 @@ class _CreateUserDialogState extends State<CreateUserDialog> {
             SuccessMessageWidget.create(
                 message: 'איזה כיף לצרף את ${newUser.firstName} למשפחה!'),
           );
-          Navigator.pop(context, newUser);
+          // Update the apartment with the new user
+          Apartment updatedApartment = widget.apartment;
+          if (newUser.role == UserType.owner) {
+            updatedApartment.ownerId = newUser.id;
+          } else if (newUser.role == UserType.tenant) {
+            updatedApartment.tenantId = newUser.id;
+          }
+
+          Navigator.pop(context, updatedApartment);
         } catch (e) {
           // Catch any errors and display them
           ScaffoldMessenger.of(context).showSnackBar(
@@ -218,32 +220,37 @@ class _CreateUserDialogState extends State<CreateUserDialog> {
             visible: !isProfessionRequired,
             child: Row(
               children: [
-                Expanded(
-                  child: ApartmentDropdown(
-                    selectedApartmentId:
-                        widget.apartmentSelectedId ?? apartmentId,
-                    buildingId: widget.buildingId,
-                    onApartmentChanged: (String? newApartmentId) {
-                      setState(() {
-                        apartmentId = newApartmentId!;
-                      });
-                    },
-                  ),
-                ),
+                // Expanded(
+                //   child: ApartmentDropdown(
+                //     selectedApartmentId:
+                //         widget.apartmentSelectedId ?? apartmentId,
+                //     buildingId: widget.buildingId,
+                //     onApartmentChanged: (String? newApartmentId) {
+                //       setState(() {
+                //         apartmentId = newApartmentId!;
+                //       });
+                //     },
+                //   ),
+                // ),
                 Visibility(
                   visible: role == UserType.tenant,
                   child: Container(
                     constraints: BoxConstraints(
-                      maxWidth: 140, // Set a maximum width for the checkbox
+                      maxWidth: 250,
                     ),
-                    child: CheckboxListTile(
-                      title: Text('אף אחד'),
-                      value: apartmentEmpty,
-                      onChanged: (bool? value) {
-                        setState(() {
-                          apartmentEmpty = value!;
-                        });
-                      },
+                    child: Directionality(
+                      textDirection: TextDirection.rtl,
+                      child: CheckboxListTile(
+                        title: Text('אף אחד לא גר בדירה'),
+                        value: apartmentEmpty,
+                        onChanged: (bool? value) {
+                          setState(() {
+                            apartmentEmpty = value!;
+                          });
+                        },
+                        controlAffinity: ListTileControlAffinity
+                            .leading, // This moves the checkbox to the right
+                      ),
                     ),
                   ),
                 ),
