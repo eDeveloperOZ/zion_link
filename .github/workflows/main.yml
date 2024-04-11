@@ -1,50 +1,50 @@
-name: Build Flutter Windows App
+# name: Build Flutter Windows App
 
-on:
-  push:
-    branches:
-      - main
+# on:
+#   push:
+#     branches:
+#       - main
 
-jobs:
-  build:
-    name: Build Windows
-    runs-on: windows-latest
+# jobs:
+#   build:
+#     name: Build Windows
+#     runs-on: windows-latest
 
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+#     steps:
+#     - name: Checkout code
+#       uses: actions/checkout@v3
 
-    - name: Set up Flutter
-      uses: subosito/flutter-action@v2
-      with:
-        channel: 'beta'
+#     - name: Set up Flutter
+#       uses: subosito/flutter-action@v2
+#       with:
+#         channel: 'beta'
 
-    - name: Verify flutter 
-      run: flutter doctor -v 
+#     - name: Verify flutter 
+#       run: flutter doctor -v 
 
-    - name: Install dependencies
-      run: flutter pub get
+#     - name: Install dependencies
+#       run: flutter pub get
 
-    - name: Build Windows
-      run: flutter build windows --release -v
-      env:
-        FLUTTER_ROOT: C:\hostedtoolcache\windows\flutter\beta-3.20.0-1.2.pre-x64
-        PUB_CACHE: C:\hostedtoolcache\windows\flutter\beta-3.20.0-1.2.pre-x64/.pub-cache
+#     - name: Build Windows
+#       run: flutter build windows --release -v
+#       env:
+#         FLUTTER_ROOT: C:\hostedtoolcache\windows\flutter\beta-3.20.0-1.2.pre-x64
+#         PUB_CACHE: C:\hostedtoolcache\windows\flutter\beta-3.20.0-1.2.pre-x64/.pub-cache
 
-    - name: Check Build Directory
-      run: |
-        if (Test-Path build\windows\runner\) {
-          echo "Build directory exists"
-          dir build\windows\runner\
-        } else {
-          echo "Build directory does not exist"
-        }
-      shell: powershell
+#     - name: Check Build Directory
+#       run: |
+#         if (Test-Path build\windows\runner\) {
+#           echo "Build directory exists"
+#           dir build\windows\runner\
+#         } else {
+#           echo "Build directory does not exist"
+#         }
+#       shell: powershell
 
 
-    - name: Upload Artifact
-      uses: actions/upload-artifact@v3
-      with:
-        name: windows-build
-        path: build/windows/x64/runner/Release/*
-        if-no-files-found: warn
+#     - name: Upload Artifact
+#       uses: actions/upload-artifact@v3
+#       with:
+#         name: windows-build
+#         path: build/windows/x64/runner/Release/*
+#         if-no-files-found: warn
