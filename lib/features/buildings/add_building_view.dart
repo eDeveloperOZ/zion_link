@@ -136,16 +136,16 @@ class _AddBuildingViewState extends State<AddBuildingView> {
                 },
                 child: Text('הוסף'),
               ),
-              Text('ערוך דירות'),
-              Checkbox(
-                value: widget.addApartmentCallback,
-                onChanged: (value) {
-                  setState(() {
-                    widget.addApartmentCallback = value!;
-                    print(widget.addApartmentCallback);
-                  });
-                },
-              ),
+              // Text('ערוך דירות'),
+              // Checkbox(
+              //   value: widget.addApartmentCallback,
+              //   onChanged: (value) {
+              //     setState(() {
+              //       widget.addApartmentCallback = value!;
+              //       print(widget.addApartmentCallback);
+              //     });
+              //   },
+              // ),
             ],
           ),
         ],

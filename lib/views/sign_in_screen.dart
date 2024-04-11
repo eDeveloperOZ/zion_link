@@ -29,8 +29,6 @@ class SignInScreen extends StatefulWidget {
 class _SignInScreenState extends State<SignInScreen> {
   final UserService _userService = UserService();
   final TextEditingController _emailOrUsernameController =
-      // TextEditingController(text: 'Ofiroz91@gmail.com');
-      // TextEditingController(text: 'anat.m.levari@gmail.com');
       TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final SignInService _signInService = SignInService();
@@ -126,46 +124,112 @@ class _SignInScreenState extends State<SignInScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('התחברות למערכת'),
+        title: Text('ברוכים הבאים ל-Tachles!'),
+        centerTitle: true,
       ),
-      body: Center(
+      body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
+              Image.asset(
+                'assets/logo.png',
+                height: 400,
+                fit: BoxFit.fitWidth,
+              ),
+              SizedBox(height: 32),
               TextField(
                 controller: _emailOrUsernameController,
                 decoration: InputDecoration(
                   labelText: 'שם משתמש',
                   hintText: 'הזן את שם המשתמש שלך',
+                  prefixIcon: Icon(Icons.person),
                 ),
               ),
-              SizedBox(height: 8),
+              SizedBox(height: 16),
               TextField(
                 controller: _passwordController,
                 decoration: InputDecoration(
                   labelText: 'סיסמה',
                   hintText: 'הזן את סיסמתך',
+                  prefixIcon: Icon(Icons.lock),
                 ),
                 obscureText: true,
               ),
-              SizedBox(height: 24),
+              SizedBox(height: 32),
               ElevatedButton(
                 onPressed: _signIn,
                 child: Text('כניסה'),
                 style: ElevatedButton.styleFrom(
-                  minimumSize: Size(double.infinity, 36),
+                  minimumSize: Size(double.infinity, 48),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
               ),
+              SizedBox(height: 16),
               TextButton(
                 onPressed: _showSignUpAlert,
                 child: Text('הרשמה'),
+              ),
+              SizedBox(height: 32),
+              Text(
+                'אנחנו כאן כדי לשמוע את דעתכם ולשפר את השירות שלנו. נשמח לשמוע מכם על הדברים שאתם חושבים שצריך לשפר, ואנחנו עובדים כל הזמן להוסיף לכם עוד כלים ואפשרויות. אתם מוזמנים לעיין באפשרויות שכבר קיימות',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 16),
+              ),
+              SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () async {
+                  const url = 'https://www.facebook.com/ofir.ozery/';
+                  if (await canLaunchUrl(Uri.parse(url))) {
+                    await launchUrl(Uri.parse(url),
+                        mode: LaunchMode.externalApplication);
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Cannot open Facebook profile.'),
+                      ),
+                    );
+                  }
+                },
+                child: Text('דברו איתנו בפייסבוק'),
+                style: ElevatedButton.styleFrom(
+                  minimumSize: Size(double.infinity, 48),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
               ),
             ],
           ),
         ),
       ),
+    );
+  }
+}
+
+class MessageWidget extends StatelessWidget {
+  final String message;
+  final bool IsDone;
+
+  const MessageWidget({Key? key, required this.message, required this.IsDone})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: <Widget>[
+        Text(
+          message,
+          style: TextStyle(
+            color: IsDone ? Colors.green : Colors.red,
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
     );
   }
 }
